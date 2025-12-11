@@ -1,0 +1,33 @@
+'use client'
+
+import { motion } from 'framer-motion'
+
+export default function Navigation() {
+  return (
+    <motion.nav
+      className="fixed top-0 left-0 right-0 z-50 bg-luxury-black/80 backdrop-blur-md border-b border-luxury-gray/10"
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
+      <div className="container-custom">
+        <div className="flex items-center justify-between h-20">
+          {/* Logo */}
+          <div className="text-luxury-white font-bold text-2xl">
+            Kerry Lee Hartly
+          </div>
+
+          {/* Optional: Add menu items here in future */}
+          <div className="flex items-center gap-6">
+            <a
+              href="#video"
+              className="text-luxury-white hover:text-luxury-gold transition-colors duration-300"
+            >
+              Watch Video
+            </a>
+          </div>
+        </div>
+      </div>
+    </motion.nav>
+  )
+}
