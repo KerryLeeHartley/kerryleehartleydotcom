@@ -1,13 +1,19 @@
+// Footer.tsx
+'use client'
+
+import { FaInstagram, FaLinkedin, FaYoutube, FaPinterest, FaFacebook } from 'react-icons/fa'
+
 export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
     <footer className="bg-luxury-black text-luxury-white py-12 border-t border-luxury-gray/10">
       <div className="container-custom">
+        {/* Top Grid */}
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           {/* Brand */}
           <div>
-            <h3 className="text-2xl font-bold mb-4">Kerry Lee Hartly</h3>
+            <h3 className="text-2xl font-bold mb-4">Kerry Lee Hartley</h3>
             <p className="text-luxury-gray text-sm">
               Licensed Real Estate Professional<br />
               Serving the Atlanta Metro Area
@@ -35,16 +41,53 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Legal</h4>
             <p className="text-luxury-gray text-sm mb-2">
-              Licensed in Georgia
+              Kerry Lee Hartley, REALTOR® is Licensed in Georgia
+            </p>
+            <p className="text-luxury-gray text-sm mb-2">
+              Harry Norman, REALTORS® is a registered trademark used under license.
             </p>
             <p className="text-luxury-gray text-sm">
-              © {currentYear} Kerry Lee Hartly.<br />All rights reserved.
+              Harry Norman, REALTORS® is an exclusive member of Forbes Global Properties in Atlanta. Forbes® is a registered trademark used under license.
+            </p>
+            <p className="text-luxury-gray text-sm mt-2">
+              © {currentYear} Running Real Estate LLC. All rights reserved.
             </p>
           </div>
         </div>
 
+        {/* Equal Housing */}
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-4 text-center md:text-left">
+          <img
+            src="/images/equal-housing-opportunity-logo-1200w.png"
+            alt="Equal Housing Opportunity"
+            className="w-24 md:w-32"
+          />
+          <p className="text-luxury-gray text-sm max-w-md">
+            We are an equal housing opportunity provider. We do not discriminate on the basis of race, color, sex, national origin, religion, disability, or familial status (having children under age 18).
+          </p>
+        </div>
+
+        {/* Sub-Footer: Social Links */}
+        <div className="flex gap-6 justify-center mt-6">
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+            <FaInstagram className="w-6 h-6 hover:text-luxury-gold transition" />
+          </a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+            <FaLinkedin className="w-6 h-6 hover:text-luxury-gold transition" />
+          </a>
+          <a href="https://youtube.com" target="_blank" rel="noopener noreferrer">
+            <FaYoutube className="w-6 h-6 hover:text-luxury-gold transition" />
+          </a>
+          <a href="https://pinterest.com" target="_blank" rel="noopener noreferrer">
+            <FaPinterest className="w-6 h-6 hover:text-luxury-gold transition" />
+          </a>
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+            <FaFacebook className="w-6 h-6 hover:text-luxury-gold transition" />
+          </a>
+        </div>
+
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-luxury-gray/10 text-center">
+        <div className="pt-8 border-t border-luxury-gray/10 text-center mt-6">
           <p className="text-luxury-gray text-sm">
             This is a lead qualification resource. Not a paid course or service.
           </p>

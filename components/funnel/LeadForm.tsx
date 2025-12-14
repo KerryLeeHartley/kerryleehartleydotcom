@@ -1,190 +1,185 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '../../lib/supabase'
 
-interface LeadFormProps {
-  funnelId: string
-  headline?: string
-  subheadline?: string
-  ctaText?: string
-  showPhone?: boolean
-  onSuccess?: () => void
+export interface LeadFormProps {
+  funnelId: string              // Required: identifies the funnel
+  showPhone?: boolean           // Optional: show/hide phone input
+  headline?: string             // Optional: heading text
+  subheadline?: string          // Optional: subheading text
+  ctaText?: string              // Optional: button text
+}
+
+interface FormState {
+  name: string
+  email: string
+  phone?: string
+  consent: boolean
 }
 
 export default function LeadForm({
-  funnelId,
-  headline = "Get Your Free Course",
-  subheadline = "Enter your details below to get instant access",
-  ctaText = "Start Learning Now",
-  showPhone = false,
-  onSuccess
+  funnelId = 'first-time-buyers',
+  showPhone = true,
+  headline = 'Get Instant Access',
+  subheadline = 'Enter your details below to receive your free first-time homebuyer resource.',
+  ctaText = 'Get Access'
 }: LeadFormProps) {
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState<FormState>({
     name: '',
     email: '',
-    phone: ''
+    phone: '',
+    consent: false,
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target
+    setForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true)
-    setError('')
-
+    setError(null)
+    if (!form.name || !form.email) {
+      setError('Name and Email are required.')
+      return
+    }
+    if (!form.consent) {
+      setError('Please accept consent to proceed.')
+      return
+    }
+    setSubmitting(true)
     try {
-      // Get UTM parameters from URL
-      const urlParams = new URLSearchParams(window.location.search)
-      const utmData = {
-        utm_source: urlParams.get('utm_source') || undefined,
-        utm_medium: urlParams.get('utm_medium') || undefined,
-        utm_campaign: urlParams.get('utm_campaign') || undefined,
-        utm_content: urlParams.get('utm_content') || undefined,
-        utm_term: urlParams.get('utm_term') || undefined,
-      }
-
-      // Save lead to Supabase
-      const { error: dbError } = await supabase
-        .from('leads')
-        .insert([{
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone || null,
+      const { error } = await supabase.from('leads').insert([
+        {
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
           funnel_id: funnelId,
-          ...utmData,
-          status: 'new',
-          metadata: {
-            user_agent: navigator.userAgent,
-            referrer: document.referrer,
-            timestamp: new Date().toISOString()
-          }
-        }])
-
-      if (dbError) throw dbError
-
-      // Track form submission in GTM
-      if (typeof window !== 'undefined' && (window as any).dataLayer) {
-        (window as any).dataLayer.push({
-          event: 'form_submit',
-          form_name: 'lead_capture',
-          funnel_id: funnelId
-        })
-      }
-
-      // Success - redirect or callback
-      if (onSuccess) {
-        onSuccess()
-      } else {
-        window.location.href = '/confirmation'
-      }
+          created_at: new Date(),
+        },
+      ])
+      if (error) throw error
+      setSubmitted(true)
     } catch (err: any) {
-      console.error('Error submitting form:', err)
-      setError('Something went wrong. Please try again.')
+      setError(err.message || 'Something went wrong.')
     } finally {
-      setIsSubmitting(false)
+      setSubmitting(false)
     }
   }
 
   return (
-    <section className="section bg-luxury-white">
-      <div className="container-custom">
-        <div className="max-w-2xl mx-auto">
-          {/* Headline */}
-          <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="heading-xl mb-4">{headline}</h2>
-            <p className="text-body">{subheadline}</p>
-          </motion.div>
-
-          {/* Form */}
-          <motion.div
-            className="card"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name Field */}
-              <div>
-                <label htmlFor="name" className="block text-sm font-semibold mb-2">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="input-field"
-                  placeholder="John Doe"
-                />
-              </div>
-
-              {/* Email Field */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-semibold mb-2">
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="input-field"
-                  placeholder="john@example.com"
-                />
-              </div>
-
-              {/* Phone Field (Optional) */}
-              {showPhone && (
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-semibold mb-2">
-                    Phone Number (Optional)
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="input-field"
-                    placeholder="(555) 123-4567"
-                  />
-                </div>
-              )}
-
-              {/* Error Message */}
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                  {error}
-                </div>
-              )}
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full btn-primary text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? 'Submitting...' : ctaText}
-              </button>
-
-              {/* Privacy Note */}
-              <p className="text-xs text-luxury-gray text-center">
-                We respect your privacy. Your information will never be shared.
-              </p>
-            </form>
-          </motion.div>
-        </div>
+    <section className="relative bg-luxury-black text-luxury-white py-24 px-6 md:px-12 overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-luxury-gold rounded-full blur-3xl opacity-20 animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-luxury-rose rounded-full blur-3xl opacity-20 animate-pulse" />
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-luxury-blue rounded-full blur-3xl opacity-20 animate-pulse" />
       </div>
+
+      <motion.div
+        className="relative max-w-3xl mx-auto bg-black/70 backdrop-blur-lg p-12 rounded-3xl shadow-2xl border border-white/10"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+      >
+        <h2 className="text-4xl font-extrabold mb-6 text-center drop-shadow-lg">{headline}</h2>
+        <p className="text-gray-300 text-center mb-8">{subheadline}</p>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <motion.input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              placeholder="Full Name"
+              className="flex-1 px-6 py-4 rounded-xl border border-white/20 bg-black/50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-luxury-gold focus:border-transparent transition"
+              whileFocus={{ scale: 1.02 }}
+            />
+            <motion.input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Email Address"
+              className="flex-1 px-6 py-4 rounded-xl border border-white/20 bg-black/50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-luxury-blue focus:border-transparent transition"
+              whileFocus={{ scale: 1.02 }}
+            />
+          </div>
+
+          {showPhone && (
+            <motion.input
+              type="tel"
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              placeholder="Phone (optional)"
+              className="w-full px-6 py-4 rounded-xl border border-white/20 bg-black/50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-luxury-rose focus:border-transparent transition"
+              whileFocus={{ scale: 1.02 }}
+            />
+          )}
+
+          <motion.label
+            className="flex items-center gap-4 cursor-pointer"
+            whileHover={{ scale: 1.02 }}
+          >
+            <input
+              type="checkbox"
+              name="consent"
+              checked={form.consent}
+              onChange={handleChange}
+              className="w-5 h-5 rounded border-white/20 bg-black/50 focus:ring-2 focus:ring-luxury-gold transition"
+            />
+            <span className="text-gray-300 text-sm">
+              I agree to receive communications from Kerry Lee Hartley.
+            </span>
+          </motion.label>
+
+          {error && (
+            <motion.p className="text-red-500 text-sm font-medium" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              {error}
+            </motion.p>
+          )}
+
+          <motion.button
+            type="submit"
+            disabled={submitting || submitted}
+            className="w-full bg-gradient-to-r from-luxury-gold via-luxury-rose to-luxury-blue text-black font-bold py-4 px-6 rounded-full shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
+            whileHover={{ scale: 1.03 }}
+          >
+            {submitting ? 'Submitting...' : submitted ? 'Submitted ✔' : ctaText}
+          </motion.button>
+        </form>
+
+        {/* Stats / Social Proof */}
+        <motion.div
+          className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+        >
+          <div className="p-6 bg-black/50 rounded-2xl border border-white/10 shadow-lg hover:scale-105 transition transform">
+            <p className="text-3xl font-extrabold text-luxury-gold">1,200+</p>
+            <p className="text-gray-300 mt-2">Happy Homeowners</p>
+          </div>
+          <div className="p-6 bg-black/50 rounded-2xl border border-white/10 shadow-lg hover:scale-105 transition transform">
+            <p className="text-3xl font-extrabold text-luxury-blue">95%</p>
+            <p className="text-gray-300 mt-2">Course Completion</p>
+          </div>
+          <div className="p-6 bg-black/50 rounded-2xl border border-white/10 shadow-lg hover:scale-105 transition transform">
+            <p className="text-3xl font-extrabold text-luxury-rose">500+</p>
+            <p className="text-gray-300 mt-2">Instant Signups</p>
+          </div>
+        </motion.div>
+      </motion.div>
     </section>
   )
 }
