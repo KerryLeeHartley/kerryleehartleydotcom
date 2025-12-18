@@ -119,7 +119,7 @@ export default function FirstTimeBuyersPage() {
         {/* Purpose: Build authority, extend engagement, drive SEO */}
         {/* Posts: Design on budget, Finding "the one", Apartment transformation, Magic of owning */}
         <BlogPreview 
-          category="first-time-buyers"
+          category="First Time Buyer"
           featured={true}
           tone="dream"
           limit={4}

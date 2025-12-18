@@ -15,8 +15,8 @@ export default function Footer() {
           <div>
             <h3 className="text-2xl font-bold mb-4">Kerry Lee Hartley</h3>
             <p className="text-luxury-gray text-sm">
-              Licensed Real Estate Professional<br />
-              Serving the Atlanta Metro Area
+              Kerry Lee Hartley, REALTOR® <br />
+              is Licensed in Georgia
             </p>
           </div>
 
@@ -40,9 +40,6 @@ export default function Footer() {
           {/* Legal */}
           <div>
             <h4 className="font-semibold mb-4">Legal</h4>
-            <p className="text-luxury-gray text-sm mb-2">
-              Kerry Lee Hartley, REALTOR® is Licensed in Georgia
-            </p>
             <p className="text-luxury-gray text-sm mb-2">
               Harry Norman, REALTORS® is a registered trademark used under license.
             </p>
