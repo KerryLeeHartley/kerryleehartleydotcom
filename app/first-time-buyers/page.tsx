@@ -8,7 +8,7 @@ import BlogPreview from '@/components/funnel/BlogPreview'  // ↓ ADDED: Blog po
 import ModalLeadForm from '@/components/funnel/ModalLeadForm'  // ↓ MODIFIED: Using compact modal version
 // import LeadForm from '@/components/funnel/LeadForm'  // ↓ SAVED: For Phase 2 (page section after Trust)
 import Navigation from '@/components/shared/Navigation'
-import Footer from '@/components/shared/FunnelFooter'
+import FunnelFooter from '@/components/shared/FunnelFooter'
 import Modal from '@/components/shared/Modal'  // ↓ ADDED: Compact modal component
 
 // ============================================================================
