@@ -27,7 +27,7 @@ export default function JourneyPreview() {
     {
       year: '2020',
       title: 'Marriage & Entrepreneurship',
-      description: 'Married Ebone. Launched Wags For Us Pet Care. Built business during pandemic to fund our wedding.'
+      description: 'Married Ashley. Launched Wags For Us Pet Care. Built business during pandemic to fund our wedding.'
     },
     {
       year: '2020',
