@@ -1,0 +1,117 @@
+{
+  "company": "Airbnb",
+  "role": "NAMER Sales Operations Lead",
+  "slug": "airbnb",
+  "videoUrl": "https://www.youtube.com/embed/YP25_WuF0iY?si=nwPqkrDdLJOGicX6",
+  "heroHeadline": "Driving Revenue Excellence at Airbnb",
+  "heroSubtext": "Proven GTM Operations leader bridging strategy and execution across global markets, with expertise in acquisition optimization, cross-functional alignment, and scalable process design.",
+  "skills": [
+    "Salesforce & CRM Architecture",
+    "Revenue Operations & GTM Strategy",
+    "Acquisition Strategy & Funnel Optimization",
+    "Data Analytics & Visualization (Looker, Tableau, Clari)",
+    "Cross-Functional Leadership & Stakeholder Alignment",
+    "Process Orchestration & Automation",
+    "Capacity Planning & Forecast Alignment",
+    "Incentive Program Design & Management"
+  ],
+  "keyWins": [
+    {
+      "metric": "181% YoY",
+      "description": "SQO improvement via Pipeline Generation Council at Camunda"
+    },
+    {
+      "metric": "30%",
+      "description": "Efficiency increase through automated reporting at Pinterest/Accenture"
+    },
+    {
+      "metric": "350+",
+      "description": "Clients served with 150+ five-star reviews at Wags For Us"
+    },
+    {
+      "metric": "Global & Regional",
+      "description": "Operations alignment across AMER/APAC and EMEA at Camunda"
+    }
+  ],
+  "experience": [
+    {
+      "title": "GTM Strategy & Operations Manager AMER/APAC",
+      "company": "Camunda",
+      "period": "12/2024 - 07/2025",
+      "highlights": [
+        "Primary North America point of contact aligning operational initiatives across VP of Sales, CRO, and EMEA counterparts",
+        "Led Pipeline Generation Council improving SQOs by 181% YoY",
+        "Implemented Clari dashboards for AE forecasting, global revenue calls, and QBRs",
+        "Co-owned Rules of Engagement rollout streamlining GTM processes",
+        "Managed regional and global incentive programs translating performance data into leadership insights"
+      ]
+    },
+    {
+      "title": "Sales Strategy & Operations",
+      "company": "Accenture | Pinterest",
+      "period": "05/2023 - 11/2024",
+      "highlights": [
+        "Translated large datasets into actionable insights informing VP-level and CFO/CEO decisions",
+        "Supported capacity planning, forecasting, and rhythm-of-business in high-growth ad sales",
+        "Built automated reporting systems increasing efficiency by 30%",
+        "Conducted market analysis and sales process optimization influencing strategic initiatives"
+      ]
+    },
+    {
+      "title": "Co-Founder & Operations Lead",
+      "company": "Wags For Us Pet Care",
+      "period": "07/2021 - Present",
+      "highlights": [
+        "Co-founded and managed operations, CRM architecture (Odoo), and revenue strategy",
+        "Served 350+ clients with 150+ five-star reviews maintaining repeatable acquisition funnels",
+        "Leveraged third-party platforms (Rover) for consistent new business growth",
+        "Built scalable operational workflows and cross-functional coordination processes"
+      ]
+    },
+    {
+      "title": "Licensed Realtor®",
+      "company": "Harry Norman, REALTORS®",
+      "period": "10/2025 - Present",
+      "highlights": [
+        "Passed licensing exam on first attempt with high marks after world-class training",
+        "Implemented Odoo CRM for proprietary sales methodology (Ninja Selling)",
+        "Built pipeline independently through inbound and outbound lead generation",
+        "Translate market data into actionable client insights and forecast analysis"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "title": "Personal Brand Website",
+      "description": "Full-stack Next.js site with animated signature, dynamic application funnels, and interactive resume system",
+      "tech": ["Next.js", "React", "Tailwind CSS", "Framer Motion", "TypeScript"],
+      "image": "/images/projects/KerryLeeHartleyDotCom Mockup Photos.svg",
+      "link": "https://kerryleehartley.com"
+    },
+    {
+      "title": "Creator Decoded",
+      "description": "Content creator analytics platform helping creators understand and grow their audience",
+      "tech": ["React", "Supabase", "Analytics APIs", "Data Visualization"],
+      "image": "/images/projects/Creator Decoded Mockup Photos.svg",
+      "link": "#"
+    },
+    {
+      "title": "Fundamental Four (Book)",
+      "description": "Self-published book on four core pillars for personal and professional excellence: Innovate, Inspire, Invest, Impact",
+      "tech": ["Self-Publishing", "Content Strategy", "Personal Brand"],
+      "image": "/images/projects/FullMockUp.png",
+      "link": "#"
+    }
+  ],
+  "contact": {
+    "email": "KerryLeeHartley@gmail.com",
+    "phone": "321-806-0402",
+    "linkedin": "https://linkedin.com/in/kerryleehartley",
+    "github": "https://github.com/KerryLeeHartley",
+    "calendly": "https://calendly.com/thekerryleehartley/chat"
+  },
+  "downloads": {
+    "resume": "/resumes/Kerry-Hartley-Resume.pdf",
+    "coverLetter": "/resumes/Kerry-Hartley-Airbnb-Cover-Letter.pdf"
+  }
+}

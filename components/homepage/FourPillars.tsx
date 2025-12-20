@@ -103,7 +103,7 @@ export default function FourPillars() {
       title: 'INNOVATE',
       description: 'Building the future of work through GTM strategy, operations excellence, and data-driven solutions.',
       audience: 'For Builders',
-      imageSrc: 'https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2940&auto=format&fit=crop',
+      imageSrc: '/images/image000000.png',
       href: '/work/technology',
       delay: 0.1
     },
@@ -111,7 +111,7 @@ export default function FourPillars() {
       title: 'INSPIRE',
       description: 'Sharing stories that move people to action. Content that connects, educates, and transforms.',
       audience: 'For Communities',
-      imageSrc: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=2940&auto=format&fit=crop',
+      imageSrc: '/images/IMG_7600.png',
       href: '/blog',
       delay: 0.2
     },
@@ -119,7 +119,7 @@ export default function FourPillars() {
       title: 'INVEST',
       description: 'Creating paths to wealth and homeownership. Helping families build their foundation.',
       audience: 'For Families',
-      imageSrc: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=2073&auto=format&fit=crop',
+      imageSrc: '/images/IMG_6022.png',
       href: '/funnel/first-time-buyers',
       delay: 0.3
     },
@@ -127,7 +127,7 @@ export default function FourPillars() {
       title: 'IMPACT',
       description: 'Giving back to community. Building legacy through intentional service and meaningful contribution.',
       audience: 'For Tomorrow',
-      imageSrc: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?q=80&w=2786&auto=format&fit=crop',
+      imageSrc: '/images/IMG_0112.png',
       href: '/impact',
       delay: 0.4
     }

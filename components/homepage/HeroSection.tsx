@@ -41,10 +41,10 @@ export default function HeroSection() {
       {/* ====================================================================== */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2787&auto=format&fit=crop"
+          src="/images/DSC_72171290.jpg"
           alt="Kerry Lee Hartley"
           fill
-          className="object-cover opacity-40 grayscale"
+          className="object-cover opacity-40 grayscale object-top"
           priority
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black" />
