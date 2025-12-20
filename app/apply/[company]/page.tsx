@@ -25,7 +25,7 @@ function ApplyNavigation() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-white/10">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4 flex items-center justify-between">
         {/* Static Signature Logo - No Link */}
-        <div className="relative w-32 h-12">
+        <div className="relative w-32 h-28">
           <Image
             src="/BlackTransparent.png"
             alt="Kerry Lee Hartley"
