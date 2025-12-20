@@ -35,3 +35,4 @@ next-env.d.ts
 
 # Ignore large videos only
 /public/airbnb_vsl.mp4
+public/airbnb_vsl.mp4
