@@ -174,6 +174,6 @@ export default function JourneyPreview() {
  * IMPORTANT:
  * - This is a PREVIEW - full story goes on /journey page
  * - Keep descriptions brief (2-3 lines max)
- * - Add more detail in full Journey page
+ * - Add more detail in full Journey page if needed
  * - Timeline should show progression and growth
  */
