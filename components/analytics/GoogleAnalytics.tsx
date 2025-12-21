@@ -16,7 +16,7 @@ import { useEffect, Suspense } from 'react'
 // CONFIGURATION
 // ============================================================================
 // Replace with your actual GA4 Measurement ID from Google Analytics
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-XXXXXXXXXX'
+const GA_MEASUREMENT_ID = 'G-LZBLFZJSS4' // Hard-coded for now
 
 // ============================================================================
 // PAGE VIEW TRACKING (wrapped in Suspense)
