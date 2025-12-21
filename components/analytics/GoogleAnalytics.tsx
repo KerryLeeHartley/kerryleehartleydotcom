@@ -10,7 +10,7 @@
 
 import Script from 'next/script'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 
 // ============================================================================
 // CONFIGURATION
@@ -19,9 +19,9 @@ import { useEffect } from 'react'
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-XXXXXXXXXX'
 
 // ============================================================================
-// PAGE VIEW TRACKING
+// PAGE VIEW TRACKING (wrapped in Suspense)
 // ============================================================================
-export function GoogleAnalytics() {
+function GoogleAnalyticsTracking() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -31,6 +31,10 @@ export function GoogleAnalytics() {
     }
   }, [pathname, searchParams])
 
+  return null
+}
+
+export function GoogleAnalytics() {
   return (
     <>
       {/* Google Analytics Script */}
@@ -52,6 +56,11 @@ export function GoogleAnalytics() {
           `,
         }}
       />
+      
+      {/* Tracking component wrapped in Suspense */}
+      <Suspense fallback={null}>
+        <GoogleAnalyticsTracking />
+      </Suspense>
     </>
   )
 }
