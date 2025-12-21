@@ -61,12 +61,12 @@ interface HobbyCardProps {
 function HobbyCard({ title, image, description }: HobbyCardProps) {
   return (
     <div className="group relative overflow-hidden rounded-xl bg-zinc-900 border border-white/10">
-      <div className="relative h-[500px]">
+      <div className="relative h-80">
         <Image
           src={image}
           alt={title}
           fill
-          className="object-cover object-top grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500"
+          className="object-cover object-top  grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -81,18 +81,18 @@ function HobbyCard({ title, image, description }: HobbyCardProps) {
 function HobbiesSection() {
   const hobbies = [
     {
-      title: "Fishing",
-      image: "/images/5DE1655C-1AB3-48BC-AE44-75F358EA605D.png",
+      title: "Saltwater Fishing",
+      image: "/images/fishinghobby.png",
       description: "Finding peace and strategy on the open water"
     },
     {
       title: "Golfing",
-      image: "/images/IMG_1840.png",
+      image: "/images/golfinghobby.png",
       description: "Precision, patience, and the pursuit of excellence"
     },
     {
       title: "Running",
-      image: "/images/IMG_7384.png",
+      image: "/images/runninghobby.png",
       description: "Building endurance, one mile at a time"
     }
   ]
@@ -105,7 +105,7 @@ function HobbiesSection() {
             Beyond the Boardroom
           </h2>
           <p className="text-gray-400 text-lg">
-            Work hard. Play harder.
+            Balance, discipline, and intentional living
           </p>
         </div>
 
@@ -150,6 +150,8 @@ export default async function ApplyPage({ params }: PageProps) {
           headline={appData.heroHeadline}
           subtext={appData.heroSubtext}
           company={appData.company}
+          jobPostingUrl={appData.jobPostingUrl}
+          additionalRoles={appData.additionalRoles}
         />
 
         {/* Interactive Resume Timeline */}

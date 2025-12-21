@@ -2,16 +2,17 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Script from 'next/script'
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'First-Time Home Buyer Guide | Kerry Lee Hartly',
-  description: 'Your comprehensive guide to buying your first home. Learn the process, avoid common mistakes, and work with an experienced realtor.',
-  keywords: 'first-time home buyer, real estate, home buying guide, Atlanta realtor',
+  title: 'Kerry Lee Hartley | GTM Strategist, Realtor & Storyteller',
+  description: 'Man of God. Innovator. Storyteller. Building legacy through strategy, creativity, and intentional impact.',
+  keywords: 'GTM strategy, sales operations, revenue operations, real estate, Atlanta realtor',
   openGraph: {
-    title: 'First-Time Home Buyer Guide',
-    description: 'Your comprehensive guide to buying your first home',
+    title: 'Kerry Lee Hartley',
+    description: 'Man of God. Innovator. Storyteller.',
     type: 'website',
   },
 }
@@ -55,6 +56,10 @@ export default function RootLayout({
             />
           </noscript>
         )}
+        
+        {/* Google Analytics 4 - For custom event tracking */}
+        <GoogleAnalytics />
+        
         {children}
       </body>
     </html>

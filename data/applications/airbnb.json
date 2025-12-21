@@ -1,10 +1,18 @@
 {
   "company": "Airbnb",
   "role": "NAMER Sales Operations Lead",
+  "jobPostingUrl": "https://careers.airbnb.com/positions/7467890/",
   "slug": "airbnb",
   "videoUrl": "https://www.youtube.com/embed/YP25_WuF0iY?si=nwPqkrDdLJOGicX6",
   "heroHeadline": "Driving Revenue Excellence at Airbnb",
   "heroSubtext": "Proven GTM Operations leader bridging strategy and execution across global markets, with expertise in acquisition optimization, cross-functional alignment, and scalable process design.",
+  "additionalRoles": [
+    {
+      "title": "NAMER Sales Operations Lead",
+      "url": "https://careers.airbnb.com/positions/7467890/",
+      "isPrimary": true
+    }
+  ],
   "skills": [
     "Salesforce & CRM Architecture",
     "Revenue Operations & GTM Strategy",
@@ -96,7 +104,7 @@
       "link": "#"
     },
     {
-      "title": "Fundamental Four Book",
+      "title": "Fundamental Four (Book)",
       "description": "Self-published book on four core pillars for personal and professional excellence: Innovate, Inspire, Invest, Impact",
       "tech": ["Self-Publishing", "Content Strategy", "Personal Brand"],
       "image": "/images/projects/FullMockUp.png",
@@ -111,7 +119,7 @@
     "calendly": "https://calendly.com/thekerryleehartley/chat"
   },
   "downloads": {
-    "resume": "/resumes/Kerry-Hartley-Resume.pdf",
+    "resume": "/resumes/Kerry Hartley - Airbnb Resume.pdf",
     "coverLetter": "/resumes/Kerry-Hartley-Airbnb-Cover-Letter.pdf"
   }
 }
