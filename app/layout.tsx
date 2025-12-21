@@ -22,7 +22,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const gtmId = process.env.NEXT_PUBLIC_GTM_ID
+  const gtmId = 'GTM-WH6QSZC' // Hard-coded for now
 
   return (
     <html lang="en" className="scroll-smooth">
