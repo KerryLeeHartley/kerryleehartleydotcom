@@ -3,6 +3,7 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { trackProjectClick } from '@/components/analytics/GoogleAnalytics'
 
 interface Project {
   title: string
@@ -44,6 +45,7 @@ export default function ProjectShowcase({ projects }: ProjectShowcaseProps) {
               href={project.link}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackProjectClick(project.title)}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

@@ -2,6 +2,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { trackCalendlyClick, trackDownload, trackNavClick } from '@/components/analytics/GoogleAnalytics'
 
 interface Contact {
   email: string
@@ -23,6 +24,35 @@ interface CalendlyCTAProps {
 }
 
 export default function CalendlyCTA({ contact, downloads, company }: CalendlyCTAProps) {
+  // Event handlers
+  const handleCalendlyClick = () => {
+    trackCalendlyClick(company, 'Bottom CTA')
+  }
+
+  const handleResumeDownload = () => {
+    trackDownload('Resume', company)
+  }
+
+  const handleCoverLetterDownload = () => {
+    trackDownload('Cover Letter', company)
+  }
+
+  const handleEmailClick = () => {
+    trackNavClick('Email')
+  }
+
+  const handlePhoneClick = () => {
+    trackNavClick('Phone')
+  }
+
+  const handleLinkedInClick = () => {
+    trackNavClick('LinkedIn')
+  }
+
+  const handleGitHubClick = () => {
+    trackNavClick('GitHub')
+  }
+
   return (
     <section className="py-20 bg-gradient-to-b from-black via-zinc-950 to-black">
       <div className="max-w-4xl mx-auto px-6">
@@ -46,6 +76,7 @@ export default function CalendlyCTA({ contact, downloads, company }: CalendlyCTA
             href={contact.calendly}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={handleCalendlyClick}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="inline-block px-8 py-4 bg-white text-black rounded-full font-semibold text-lg hover:bg-gray-200 transition-colors shadow-xl"
@@ -65,6 +96,7 @@ export default function CalendlyCTA({ contact, downloads, company }: CalendlyCTA
           <a
             href={downloads.resume}
             download
+            onClick={handleResumeDownload}
             className="px-6 py-3 bg-zinc-900 border border-white/20 text-white rounded-full hover:bg-zinc-800 hover:border-white/40 transition-all flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,6 +108,7 @@ export default function CalendlyCTA({ contact, downloads, company }: CalendlyCTA
           <a
             href={downloads.coverLetter}
             download
+            onClick={handleCoverLetterDownload}
             className="px-6 py-3 bg-zinc-900 border border-white/20 text-white rounded-full hover:bg-zinc-800 hover:border-white/40 transition-all flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,6 +128,7 @@ export default function CalendlyCTA({ contact, downloads, company }: CalendlyCTA
         >
           <a
             href={`mailto:${contact.email}`}
+            onClick={handleEmailClick}
             className="px-6 py-3 bg-white/5 border border-white/10 text-white rounded-full hover:bg-white/10 hover:border-white/20 transition-all flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,6 +139,7 @@ export default function CalendlyCTA({ contact, downloads, company }: CalendlyCTA
 
           <a
             href={`tel:${contact.phone}`}
+            onClick={handlePhoneClick}
             className="px-6 py-3 bg-white/5 border border-white/10 text-white rounded-full hover:bg-white/10 hover:border-white/20 transition-all flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,6 +152,7 @@ export default function CalendlyCTA({ contact, downloads, company }: CalendlyCTA
             href={contact.linkedin}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={handleLinkedInClick}
             className="px-6 py-3 bg-white/5 border border-white/10 text-white rounded-full hover:bg-white/10 hover:border-white/20 transition-all flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -129,6 +165,7 @@ export default function CalendlyCTA({ contact, downloads, company }: CalendlyCTA
             href={contact.github}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={handleGitHubClick}
             className="px-6 py-3 bg-white/5 border border-white/10 text-white rounded-full hover:bg-white/10 hover:border-white/20 transition-all flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

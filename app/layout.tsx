@@ -25,7 +25,7 @@ export default function RootLayout({
   const gtmId = 'GTM-WH6QSZC' // Hard-coded for now
 
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
         {/* Google Tag Manager */}
         {gtmId && (

@@ -1,8 +1,18 @@
-// Interactive resume timeline
+// Interactive resume timeline with event tracking
 'use client'
 
 import { motion } from 'framer-motion'
 import { useState } from 'react'
+
+// Track resume interactions
+const trackResumeInteraction = (action: string, label: string) => {
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    ;(window as any).gtag('event', action, {
+      event_category: 'Resume',
+      event_label: label,
+    })
+  }
+}
 
 interface ExperienceItem {
   title: string
@@ -19,6 +29,23 @@ interface InteractiveResumeProps {
 
 export default function InteractiveResume({ experience, skills, keyWins }: InteractiveResumeProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0)
+
+  const handleAccordionClick = (index: number, company: string) => {
+    const isExpanding = expandedIndex !== index
+    setExpandedIndex(isExpanding ? index : null)
+    
+    if (isExpanding) {
+      trackResumeInteraction('accordion_expand', company)  // Now shows "Camunda", "Pinterest", etc.
+    }
+  }
+
+  const handleKeyWinClick = (metric: string) => {
+    trackResumeInteraction('key_win_click', metric)
+  }
+
+  const handleSkillClick = (skill: string) => {
+    trackResumeInteraction('skill_click', skill)
+  }
 
   return (
     <section className="py-20 bg-gradient-to-b from-black via-zinc-950 to-black">
@@ -39,7 +66,7 @@ export default function InteractiveResume({ experience, skills, keyWins }: Inter
           </p>
         </motion.div>
 
-        {/* Key Wins Grid */}
+        {/* Key Wins Grid with tracking */}
         <div className="grid md:grid-cols-4 gap-6 mb-20">
           {keyWins.map((win, index) => (
             <motion.div
@@ -48,7 +75,8 @@ export default function InteractiveResume({ experience, skills, keyWins }: Inter
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="bg-zinc-900 border border-white/10 rounded-xl p-6 text-center hover:border-white/30 transition-all"
+              onClick={() => handleKeyWinClick(win.metric)}
+              className="bg-zinc-900 border border-white/10 rounded-xl p-6 text-center hover:border-white/30 transition-all cursor-pointer"
             >
               <div className="text-3xl font-bold text-white mb-2">{win.metric}</div>
               <div className="text-sm text-gray-400 leading-relaxed">{win.description}</div>
@@ -56,7 +84,7 @@ export default function InteractiveResume({ experience, skills, keyWins }: Inter
           ))}
         </div>
 
-        {/* Experience Timeline */}
+        {/* Experience Timeline with tracking */}
         <div className="space-y-4 mb-16">
           {experience.map((exp, index) => (
             <motion.div
@@ -69,7 +97,7 @@ export default function InteractiveResume({ experience, skills, keyWins }: Inter
             >
               {/* Header - Always visible */}
               <button
-                onClick={() => setExpandedIndex(expandedIndex === index ? null : index)}
+                onClick={() => handleAccordionClick(index, exp.company)}
                 className="w-full p-6 text-left flex items-center justify-between hover:bg-white/5 transition-colors"
               >
                 <div className="flex-1">
@@ -115,7 +143,7 @@ export default function InteractiveResume({ experience, skills, keyWins }: Inter
           ))}
         </div>
 
-        {/* Skills Grid */}
+        {/* Skills Grid with tracking */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -131,7 +159,8 @@ export default function InteractiveResume({ experience, skills, keyWins }: Inter
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.05 }}
-                className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-gray-300 hover:bg-white/10 hover:border-white/20 transition-all"
+                onClick={() => handleSkillClick(skill)}
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-gray-300 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer"
               >
                 {skill}
               </motion.span>
