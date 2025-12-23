@@ -14,6 +14,16 @@ const trackResumeInteraction = (action: string, label: string) => {
   }
 }
 
+// Track navigation clicks (for role links)
+const trackNavClick = (label: string) => {
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    ;(window as any).gtag('event', 'nav_click', {
+      event_category: 'Navigation',
+      event_label: label,
+    })
+  }
+}
+
 interface ExperienceItem {
   title: string
   company: string
@@ -25,9 +35,15 @@ interface InteractiveResumeProps {
   experience: ExperienceItem[]
   skills: string[]
   keyWins: Array<{ metric: string; description: string }>
+  additionalRoles?: Array<{
+    title: string
+    url: string
+    isPrimary?: boolean
+  }>
+  company?: string
 }
 
-export default function InteractiveResume({ experience, skills, keyWins }: InteractiveResumeProps) {
+export default function InteractiveResume({ experience, skills, keyWins, additionalRoles, company }: InteractiveResumeProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0)
 
   const handleAccordionClick = (index: number, company: string) => {
@@ -167,6 +183,52 @@ export default function InteractiveResume({ experience, skills, keyWins }: Inter
             ))}
           </div>
         </motion.div>
+
+        {/* Open to Similar Roles - NEW SECTION */}
+        {additionalRoles && additionalRoles.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="mt-16 pt-12 border-t border-white/10"
+          >
+            {/* Smart heading based on number of roles */}
+            <h3 className="text-2xl font-bold text-white text-center mb-4">
+              {additionalRoles.length > 1 ? 'Other Roles I\'m Interested In' : 'Primary Role'}
+            </h3>
+            
+            <div className="flex flex-wrap justify-center gap-4 mb-4">
+              {additionalRoles.map((role, index) => (
+                <a
+                  key={index}
+                  href={role.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackNavClick(`Role: ${role.title}`)}
+                  className={`px-6 py-3 rounded-full border transition-all flex items-center gap-2 ${
+                    role.isPrimary
+                      ? 'bg-white text-black border-white font-semibold'
+                      : 'border-white/30 text-white hover:bg-white/10'
+                  }`}
+                >
+                  {role.title}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              ))}
+            </div>
+            
+            {/* Smart subtext based on number of roles */}
+            <p className="text-center text-gray-400 text-base leading-relaxed max-w-2xl mx-auto">
+              {additionalRoles.length > 1 
+                ? `Click to view full job descriptions on ${company}'s careers page`
+                : `Also open to similar roles in Sales Operations, Revenue Operations, and Go-To-Market Strategy`
+              }
+            </p>
+          </motion.div>
+        )}
 
       </div>
     </section>

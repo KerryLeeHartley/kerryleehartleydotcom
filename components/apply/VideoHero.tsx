@@ -114,44 +114,6 @@ export default function VideoHero({ videoUrl, headline, subtext, company, jobPos
           </div>
         </motion.div>
 
-        {/* Additional Roles Section (if provided) */}
-        {additionalRoles && additionalRoles.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.7 }}
-            className="mt-16 pt-12 border-t border-white/10"
-          >
-            <h3 className="text-2xl font-bold text-white text-center mb-6">
-              Other Roles I'm Interested In
-            </h3>
-            <div className="flex flex-wrap justify-center gap-4">
-              {additionalRoles.map((role, index) => (
-                <a
-                  key={index}
-                  href={role.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => trackNavClick(`Role: ${role.title}`)}
-                  className={`px-6 py-3 rounded-full border transition-all flex items-center gap-2 ${
-                    role.isPrimary
-                      ? 'bg-white text-black border-white font-semibold'
-                      : 'border-white/30 text-white hover:bg-white/10'
-                  }`}
-                >
-                  {role.title}
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              ))}
-            </div>
-            <p className="text-center text-gray-500 text-sm mt-4">
-              Click to view full job descriptions on {company}'s careers page
-            </p>
-          </motion.div>
-        )}
-
       </div>
     </section>
   )

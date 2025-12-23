@@ -64,6 +64,8 @@ export default async function ApplyPage({
           experience={appData.experience}
           skills={appData.skills}
           keyWins={appData.keyWins}
+          additionalRoles={appData.additionalRoles}
+          company={appData.company}
         />
 
         {/* Project Showcase */}
