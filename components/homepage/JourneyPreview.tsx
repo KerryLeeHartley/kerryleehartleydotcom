@@ -1,15 +1,25 @@
 // ============================================================================
-// JOURNEY PREVIEW - Timeline Section
+// JOURNEY PREVIEW - Timeline Section + TRACKING
 // ============================================================================
 // What: Preview of key life/career moments with timeline visual
 // Why: Build credibility and showcase your multi-dimensional journey
-// How: Vertical timeline with dates and key achievements
+// How: Vertical timeline with dates and key achievements + click tracking
 // ============================================================================
 
 'use client'
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+
+// Track timeline interactions
+const trackJourneyClick = (label: string) => {
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    ;(window as any).gtag('event', 'nav_click', {
+      event_category: 'Homepage Journey',
+      event_label: label,
+    })
+  }
+}
 
 interface TimelineItem {
   year: string
@@ -86,7 +96,7 @@ export default function JourneyPreview() {
           {/* Vertical Line */}
           <div className="absolute left-0 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent" />
 
-          {/* Timeline Items */}
+          {/* Timeline Items WITH TRACKING */}
           <div className="space-y-12">
             {milestones.map((item, index) => (
               <motion.div
@@ -95,9 +105,10 @@ export default function JourneyPreview() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
+                onClick={() => trackJourneyClick(`Timeline: ${item.title}`)}
                 className={`relative flex items-center ${
                   index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
-                } flex-col md:gap-0 gap-4`}
+                } flex-col md:gap-0 gap-4 cursor-pointer hover:opacity-80 transition-opacity`}
               >
                 {/* Content */}
                 <div className={`w-full md:w-5/12 ${index % 2 === 0 ? 'md:text-right md:pr-12' : 'md:text-left md:pl-12'} text-left pl-8 md:pl-0`}>
@@ -119,7 +130,7 @@ export default function JourneyPreview() {
           </div>
         </div>
 
-        {/* CTA to Full Journey */}
+        {/* CTA to Full Journey WITH TRACKING */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -129,6 +140,7 @@ export default function JourneyPreview() {
         >
           <Link
             href="/journey"
+            onClick={() => trackJourneyClick('View Full Journey')}
             className="inline-flex items-center gap-2 px-8 py-4 bg-white text-black rounded-full hover:bg-gray-200 transition-colors font-semibold uppercase tracking-wider text-sm"
           >
             View Full Journey
@@ -148,32 +160,28 @@ export default function JourneyPreview() {
 }
 
 // ============================================================================
-// 📚 USAGE NOTES
+// 📊 TRACKING EVENTS ADDED:
 // ============================================================================
 /*
- * PURPOSE:
- * Preview of your journey to build credibility and intrigue
- * Links to full Journey page for deeper story
+ * EVENTS NOW TRACKED:
  * 
- * PLACEHOLDER CONTENT:
- * Using milestones from your resume + key life moments
- * UPDATE these as you refine your story
+ * 1. nav_click - "Timeline: FAMU Graduate"
+ * 2. nav_click - "Timeline: Marriage & Entrepreneurship"
+ * 3. nav_click - "Timeline: Published Author"
+ * 4. nav_click - "Timeline: Sales Operations Leader"
+ * 5. nav_click - "Timeline: Accenture & Pinterest"
+ * 6. nav_click - "Timeline: GTM Strategy Manager"
+ * 7. nav_click - "Timeline: Licensed Realtor"
+ * 8. nav_click - "Timeline: Building Legacy"
+ * 9. nav_click - "View Full Journey"
  * 
- * HOW TO MODIFY:
- * - Add milestones: Add objects to milestones array
- * - Edit descriptions: Change description text
- * - Adjust timeline spacing: Modify space-y-12
- * - Change alternating layout: Remove index % 2 logic for single-side timeline
+ * BUSINESS INSIGHTS:
  * 
- * TIMELINE BEHAVIOR:
- * - Desktop: Alternates left/right
- * - Mobile: All items on right side
- * - Vertical line connects all dots
- * - Each item animates in on scroll
+ * Timeline Engagement:
+ * - Which milestones get clicked most?
+ * - "GTM Strategy Manager" = 100 clicks → Career focus
+ * - "Licensed Realtor" = 80 clicks → Real estate interest
+ * - "Published Author" = 60 clicks → Book/content interest
  * 
- * IMPORTANT:
- * - This is a PREVIEW - full story goes on /journey page
- * - Keep descriptions brief (2-3 lines max)
- * - Add more detail in full Journey page if needed
- * - Timeline should show progression and growth
+ * Action: Highlight top-performing milestones in marketing
  */

@@ -1,9 +1,9 @@
 // ============================================================================
-// NAVIGATION COMPONENT - Main Site Header
+// NAVIGATION COMPONENT - Main Site Header + TRACKING
 // ============================================================================
 // What: Primary navigation for the main website (not funnels)
 // Why: Provides clean, minimal navigation matching David Alaba aesthetic
-// How: Fixed header with dropdown for WORK, mobile overlay menu
+// How: Fixed header with dropdown for WORK, mobile overlay menu + click tracking
 // ============================================================================
 
 'use client'
@@ -13,18 +13,23 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 
+// Track navigation clicks
+const trackNavClick = (label: string, isMobile: boolean = false) => {
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    ;(window as any).gtag('event', 'nav_click', {
+      event_category: isMobile ? 'Mobile Navigation' : 'Desktop Navigation',
+      event_label: label,
+    })
+  }
+}
+
 export default function Navigation() {
-  // ==========================================================================
-  // STATE MANAGEMENT
-  // ==========================================================================
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [workDropdownOpen, setWorkDropdownOpen] = useState(false)
 
   return (
     <>
-      {/* ================================================================== */}
       {/* DESKTOP NAVIGATION */}
-      {/* ================================================================== */}
       <motion.nav
         className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-white/10"
         initial={{ y: -100 }}
@@ -34,8 +39,12 @@ export default function Navigation() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             
-            {/* Logo - Your Signature */}
-            <Link href="/" className="relative w-32 h-12">
+            {/* Logo - Your Signature WITH TRACKING */}
+            <Link 
+              href="/" 
+              onClick={() => trackNavClick('Logo')}
+              className="relative w-32 h-12"
+            >
               <Image
                 src="/BlackTransparent.png"
                 alt="Kerry Lee Hartley"
@@ -45,10 +54,11 @@ export default function Navigation() {
               />
             </Link>
 
-            {/* Desktop Menu */}
+            {/* Desktop Menu WITH TRACKING */}
             <div className="hidden md:flex items-center gap-8">
               <Link 
                 href="/"
+                onClick={() => trackNavClick('Home')}
                 className="text-white hover:text-gray-300 transition-colors duration-300 text-sm uppercase tracking-wider"
               >
                 Home
@@ -56,18 +66,22 @@ export default function Navigation() {
               
               <Link 
                 href="/journey"
+                onClick={() => trackNavClick('Journey')}
                 className="text-white hover:text-gray-300 transition-colors duration-300 text-sm uppercase tracking-wider"
               >
                 Journey
               </Link>
 
-              {/* Work Dropdown */}
+              {/* Work Dropdown WITH TRACKING */}
               <div 
                 className="relative"
                 onMouseEnter={() => setWorkDropdownOpen(true)}
                 onMouseLeave={() => setWorkDropdownOpen(false)}
               >
-                <button className="text-white hover:text-gray-300 transition-colors duration-300 text-sm uppercase tracking-wider flex items-center gap-1">
+                <button 
+                  onClick={() => trackNavClick('Work Dropdown')}
+                  className="text-white hover:text-gray-300 transition-colors duration-300 text-sm uppercase tracking-wider flex items-center gap-1"
+                >
                   Work
                   <svg 
                     className={`w-4 h-4 transition-transform duration-200 ${workDropdownOpen ? 'rotate-180' : ''}`}
@@ -91,12 +105,14 @@ export default function Navigation() {
                     >
                       <Link 
                         href="/work/technology"
+                        onClick={() => trackNavClick('Work > Technology')}
                         className="block px-6 py-3 text-white hover:bg-white/10 transition-colors text-sm"
                       >
                         Technology
                       </Link>
                       <Link 
                         href="/funnel/first-time-buyers"
+                        onClick={() => trackNavClick('Work > Real Estate')}
                         className="block px-6 py-3 text-white hover:bg-white/10 transition-colors text-sm"
                       >
                         Real Estate
@@ -108,6 +124,7 @@ export default function Navigation() {
 
               <Link 
                 href="/blog"
+                onClick={() => trackNavClick('Stories')}
                 className="text-white hover:text-gray-300 transition-colors duration-300 text-sm uppercase tracking-wider"
               >
                 Stories
@@ -115,6 +132,7 @@ export default function Navigation() {
 
               <Link 
                 href="/impact"
+                onClick={() => trackNavClick('Impact')}
                 className="text-white hover:text-gray-300 transition-colors duration-300 text-sm uppercase tracking-wider"
               >
                 Impact
@@ -122,6 +140,7 @@ export default function Navigation() {
 
               <Link 
                 href="/contact"
+                onClick={() => trackNavClick('Contact')}
                 className="text-white hover:text-gray-300 transition-colors duration-300 text-sm uppercase tracking-wider"
               >
                 Contact
@@ -130,7 +149,10 @@ export default function Navigation() {
 
             {/* Mobile Menu Button */}
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={() => {
+                setMobileMenuOpen(!mobileMenuOpen)
+                trackNavClick('Mobile Menu Toggle', true)
+              }}
               className="md:hidden text-white p-2"
               aria-label="Toggle menu"
             >
@@ -151,9 +173,7 @@ export default function Navigation() {
         </div>
       </motion.nav>
 
-      {/* ================================================================== */}
-      {/* MOBILE MENU OVERLAY (David Alaba Style) */}
-      {/* ================================================================== */}
+      {/* MOBILE MENU OVERLAY WITH TRACKING */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
@@ -167,7 +187,10 @@ export default function Navigation() {
               
               {/* Close Button */}
               <button
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  trackNavClick('Mobile Menu Close', true)
+                }}
                 className="absolute top-8 right-8 text-white text-sm uppercase tracking-wider"
               >
                 Close
@@ -183,11 +206,14 @@ export default function Navigation() {
                 />
               </div>
 
-              {/* Menu Items */}
+              {/* Menu Items WITH TRACKING */}
               <div className="flex flex-col items-center space-y-6 text-center">
                 <Link 
                   href="/"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    trackNavClick('Home', true)
+                  }}
                   className="text-white text-2xl uppercase tracking-wider hover:text-gray-400 transition-colors"
                 >
                   Home
@@ -195,7 +221,10 @@ export default function Navigation() {
                 
                 <Link 
                   href="/journey"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    trackNavClick('Journey', true)
+                  }}
                   className="text-white text-2xl uppercase tracking-wider hover:text-gray-400 transition-colors"
                 >
                   Journey
@@ -204,14 +233,20 @@ export default function Navigation() {
                 <div className="text-white text-xl uppercase tracking-wider opacity-50">Work</div>
                 <Link 
                   href="/work/technology"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    trackNavClick('Work > Technology', true)
+                  }}
                   className="text-white text-lg pl-8 hover:text-gray-400 transition-colors"
                 >
                   → Technology
                 </Link>
                 <Link 
                   href="/funnel/first-time-buyers"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    trackNavClick('Work > Real Estate', true)
+                  }}
                   className="text-white text-lg pl-8 hover:text-gray-400 transition-colors"
                 >
                   → Real Estate
@@ -219,7 +254,10 @@ export default function Navigation() {
 
                 <Link 
                   href="/blog"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    trackNavClick('Stories', true)
+                  }}
                   className="text-white text-2xl uppercase tracking-wider hover:text-gray-400 transition-colors"
                 >
                   Stories
@@ -227,7 +265,10 @@ export default function Navigation() {
 
                 <Link 
                   href="/impact"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    trackNavClick('Impact', true)
+                  }}
                   className="text-white text-2xl uppercase tracking-wider hover:text-gray-400 transition-colors"
                 >
                   Impact
@@ -235,19 +276,34 @@ export default function Navigation() {
 
                 <Link 
                   href="/contact"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    trackNavClick('Contact', true)
+                  }}
                   className="text-white text-2xl uppercase tracking-wider hover:text-gray-400 transition-colors"
                 >
                   Contact
                 </Link>
               </div>
 
-              {/* Social Links */}
+              {/* Social Links WITH TRACKING */}
               <div className="flex gap-6 pt-8">
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-400 transition-colors">
+                <a 
+                  href="https://instagram.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  onClick={() => trackNavClick('Instagram', true)}
+                  className="text-white hover:text-gray-400 transition-colors"
+                >
                   INSTAGRAM
                 </a>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-400 transition-colors">
+                <a 
+                  href="https://linkedin.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  onClick={() => trackNavClick('LinkedIn', true)}
+                  className="text-white hover:text-gray-400 transition-colors"
+                >
                   LINKEDIN
                 </a>
               </div>
@@ -260,27 +316,29 @@ export default function Navigation() {
 }
 
 // ============================================================================
-// 📚 USAGE NOTES
+// 📊 TRACKING EVENTS ADDED:
 // ============================================================================
 /*
- * PURPOSE:
- * Main navigation for homepage and content pages (not funnel pages)
+ * DESKTOP NAVIGATION:
+ * 1. nav_click - "Logo"
+ * 2. nav_click - "Home"
+ * 3. nav_click - "Journey"
+ * 4. nav_click - "Work Dropdown"
+ * 5. nav_click - "Work > Technology"
+ * 6. nav_click - "Work > Real Estate"
+ * 7. nav_click - "Stories"
+ * 8. nav_click - "Impact"
+ * 9. nav_click - "Contact"
  * 
- * KEY FEATURES:
- * - Fixed header with backdrop blur
- * - Work dropdown menu (Technology, Real Estate)
- * - Full-screen mobile overlay (David Alaba style)
- * - Your signature logo integrated
- * - Smooth animations throughout
+ * MOBILE NAVIGATION:
+ * 10. nav_click - "Mobile Menu Toggle"
+ * 11. nav_click - "Mobile Menu Close"
+ * 12. nav_click - All menu items (marked as mobile)
+ * 13. nav_click - "Instagram" (mobile)
+ * 14. nav_click - "LinkedIn" (mobile)
  * 
- * HOW TO MODIFY:
- * - Update links: Change href values
- * - Add menu items: Add new Link components
- * - Change dropdown items: Edit Work dropdown section
- * - Adjust colors: Modify bg-black/90, text-white, etc.
- * 
- * IMPORTANT:
- * - Logo file must be at /public/BlackTransparent.png
- * - This is for MAIN SITE only (funnels use different nav)
- * - Mobile menu uses full-screen overlay matching David's site
+ * INSIGHTS:
+ * - Desktop vs Mobile usage
+ * - Most popular navigation destinations
+ * - Work dropdown engagement
  */

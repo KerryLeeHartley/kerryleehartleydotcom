@@ -1,17 +1,21 @@
 // ============================================================================
-// HOMEPAGE - Main Landing Page
+// HOMEPAGE - Main Landing Page (FULLY TRACKED)
 // ============================================================================
 // What: Main homepage bringing together all sections
 // Why: The "museum experience" - your personal brand showcase
-// How: Combines hero, pillars, journey, and CTA sections
+// How: Combines hero, pillars, journey, and CTA sections + comprehensive analytics
 // ============================================================================
 
+'use client'
+
+import { trackNavClick } from '@/components/analytics/GoogleAnalytics'
 import Navigation from '@/components/shared/Navigation'
 import MainFooter from '@/components/shared/MainFooter'
 import HeroSection from '@/components/homepage/HeroSection'
 import FourPillars from '@/components/homepage/FourPillars'
 import JourneyPreview from '@/components/homepage/JourneyPreview'
 import ContactCTA from '@/components/homepage/ContactCTA'
+import ScrollTracker from '@/components/apply/ScrollTracker'
 
 export default function HomePage() {
   return (
@@ -42,7 +46,7 @@ export default function HomePage() {
       {/* Journey Preview - Timeline */}
       <JourneyPreview />
 
-      {/* Featured Stories Section - Blog Preview */}
+      {/* Featured Stories Section - Blog Preview WITH TRACKING */}
       <section className="py-24 bg-black">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -54,17 +58,29 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Blog Post Cards - Placeholder */}
+          {/* Blog Post Cards - Placeholder WITH DYNAMIC TRACKING */}
           <div className="grid md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="group cursor-pointer">
-                <div className="relative h-64 mb-4 overflow-hidden rounded-lg bg-zinc-900">
+            {/* When you add real blog posts, replace this array with your actual posts */}
+            {[
+              { id: 1, title: 'Featured Story 1', category: 'Coming Soon' },
+              { id: 2, title: 'Featured Story 2', category: 'Coming Soon' },
+              { id: 3, title: 'Featured Story 3', category: 'Coming Soon' }
+              // Real data will look like:
+              // { id: 1, title: 'Building a GTM Strategy', category: 'Technology', slug: 'building-gtm-strategy' },
+              // { id: 2, title: 'First-Time Home Buying Tips', category: 'Real Estate', slug: 'home-buying-tips' },
+            ].map((post) => (
+              <div 
+                key={post.id} 
+                className="group cursor-pointer"
+                onClick={() => trackNavClick(`Homepage - Blog: ${post.title}`)}
+              >
+                <div className="relative h-64 mb-4 overflow-hidden rounded-lg bg-zinc-900 group-hover:ring-2 group-hover:ring-white/20 transition-all">
                   <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
                   <div className="absolute bottom-4 left-4 text-white">
                     <span className="text-xs uppercase tracking-wider text-gray-400 block mb-2">
-                      Coming Soon
+                      {post.category}
                     </span>
-                    <h3 className="text-xl font-bold">Featured Story {i}</h3>
+                    <h3 className="text-xl font-bold">{post.title}</h3>
                   </div>
                 </div>
                 <p className="text-gray-500 text-sm">
@@ -77,6 +93,7 @@ export default function HomePage() {
           <div className="text-center mt-12">
             <a
               href="/blog"
+              onClick={() => trackNavClick('Homepage - View All Stories')}
               className="inline-flex items-center gap-2 px-8 py-4 border border-white/30 text-white rounded-full hover:bg-white/10 transition-colors font-semibold uppercase tracking-wider text-sm"
             >
               View All Stories
@@ -98,208 +115,31 @@ export default function HomePage() {
 
       {/* Footer */}
       <MainFooter />
+
+      {/* Scroll Tracking */}
+      <ScrollTracker company="Homepage" />
     </main>
   )
 }
 
 // ============================================================================
-// 📚 COMPREHENSIVE USAGE NOTES FOR KERRY
+// 📊 TRACKING EVENTS ADDED TO HOMEPAGE:
 // ============================================================================
 /*
- * WELCOME TO YOUR HOMEPAGE! 🎉
+ * CURRENTLY TRACKING ON THIS PAGE:
  * 
- * This is the main landing page - the "museum experience" we discussed.
- * Everything is built with placeholder content that you'll refine over time.
+ * 1. page_view (automatic via GA4)
+ * 2. scroll_depth (25%, 50%, 75%, 100% via ScrollTracker)
+ * 3. nav_click - "Homepage - Blog Card 1"
+ * 4. nav_click - "Homepage - Blog Card 2"
+ * 5. nav_click - "Homepage - Blog Card 3"
+ * 6. nav_click - "Homepage - View All Stories"
  * 
- * ═══════════════════════════════════════════════════════════════════════════
- * STRUCTURE OVERVIEW:
- * ═══════════════════════════════════════════════════════════════════════════
- * 
- * 1. HERO SECTION
- *    - Your signature logo
- *    - "Man of God" tagline
- *    - Full-screen opening
- *    - Placeholder photo (replace with your professional shot)
- * 
- * 2. INTRODUCTION
- *    - Brief "who you are" statement
- *    - Sets tone for the site
- *    - Placeholder copy (refine as you go)
- * 
- * 3. FOUR PILLARS (Your Fundamental 4)
- *    - INNOVATE → Technology Portfolio
- *    - INSPIRE → Stories/Blog
- *    - INVEST → Real Estate Funnels
- *    - IMPACT → Philanthropy
- *    - Each card has placeholder images (replace with your photos)
- * 
- * 4. JOURNEY PREVIEW
- *    - Timeline of key moments
- *    - Based on your resume + life moments
- *    - Links to full /journey page (to be built)
- * 
- * 5. FEATURED STORIES
- *    - 3 recent blog posts (placeholder for now)
- *    - Will connect to your actual blog later
- * 
- * 6. CONTACT CTA
- *    - Final invitation to connect
- *    - Get in Touch + Newsletter buttons
- * 
- * 7. FOOTER
- *    - Social links
- *    - Navigation
- *    - Newsletter signup
- * 
- * ═══════════════════════════════════════════════════════════════════════════
- * WHAT'S PLACEHOLDER (TO BE REPLACED):
- * ═══════════════════════════════════════════════════════════════════════════
- * 
- * IMAGES:
- * - Hero background (Unsplash stock photo)
- * - Four Pillars cards (Unsplash stock photos)
- * - Contact CTA background (Unsplash stock photo)
- * → Replace with your professional photos after photo shoot
- * 
- * COPY:
- * - Introduction text ("I build experiences...")
- * - Journey descriptions
- * - Four Pillars descriptions
- * → Refine through version control as you iterate
- * 
- * BLOG POSTS:
- * - "Featured Story 1, 2, 3" placeholders
- * → Will populate from your actual blog posts once connected
- * 
- * ═══════════════════════════════════════════════════════════════════════════
- * HOW TO UPDATE CONTENT:
- * ═══════════════════════════════════════════════════════════════════════════
- * 
- * INTRODUCTION TEXT:
- * - Find: "I build experiences that matter"
- * - Edit: Change to your preferred wording
- * - Keep it concise (2-3 sentences max)
- * 
- * FOUR PILLARS:
- * - Open: /components/homepage/FourPillars.tsx
- * - Edit: Change descriptions in pillars array
- * - Images: Replace imageSrc URLs with your photos
- * 
- * JOURNEY TIMELINE:
- * - Open: /components/homepage/JourneyPreview.tsx
- * - Edit: Update milestones array with your moments
- * - Add: New timeline items as your story grows
- * 
- * ═══════════════════════════════════════════════════════════════════════════
- * PAGES THAT NEED TO BE BUILT NEXT:
- * ═══════════════════════════════════════════════════════════════════════════
- * 
- * IMMEDIATE PRIORITY:
- * 1. /journey - Full timeline page (deep story like David Alaba)
- * 2. /work/technology - Tech portfolio page
- * 3. /blog - Main blog listing page
- * 4. /impact - Philanthropy page
- * 5. /contact - Contact form page
- * 
- * THESE PAGES LINKED FROM HOMEPAGE:
- * - Four Pillars cards link to these pages
- * - Navigation links to these pages
- * - Footer links to these pages
- * 
- * ═══════════════════════════════════════════════════════════════════════════
- * TESTING CHECKLIST:
- * ═══════════════════════════════════════════════════════════════════════════
- * 
- * LOCAL TESTING:
- * 1. Run: npm run dev
- * 2. Visit: http://localhost:3000
- * 3. Check: Hero loads with your signature
- * 4. Check: Navigation dropdown works
- * 5. Check: All sections visible and animated
- * 6. Check: Four Pillars cards hover correctly
- * 7. Check: Timeline displays properly
- * 8. Check: Mobile menu works (resize browser)
- * 9. Check: All links work (even if pages don't exist yet)
- * 10. Check: Footer displays correctly
- * 
- * MOBILE TESTING:
- * 1. Resize browser to mobile width
- * 2. Check: Hero looks good on mobile
- * 3. Check: Mobile menu overlay works
- * 4. Check: Four Pillars stack vertically
- * 5. Check: Timeline displays correctly
- * 6. Check: Footer is readable
- * 
- * ═══════════════════════════════════════════════════════════════════════════
- * NEXT STEPS AFTER REVIEWING:
- * ═══════════════════════════════════════════════════════════════════════════
- * 
- * 1. TEST LOCALLY
- *    - Make sure everything loads
- *    - Click through all sections
- *    - Test mobile responsiveness
- * 
- * 2. GATHER FEEDBACK
- *    - Does it feel like "you"?
- *    - Is the David Alaba aesthetic coming through?
- *    - Any sections feel off?
- * 
- * 3. PREPARE FOR PHOTO SHOOT
- *    - Show photographer the placeholder images
- *    - Explain the style (editorial B&W, moody)
- *    - Get shots that match the layouts
- * 
- * 4. REFINE COPY
- *    - Introduction text
- *    - Four Pillars descriptions
- *    - Journey timeline descriptions
- * 
- * 5. BUILD NEXT PAGES
- *    - /journey (full story)
- *    - /work/technology (portfolio)
- *    - /blog (listing page)
- * 
- * ═══════════════════════════════════════════════════════════════════════════
- * DESIGN NOTES:
- * ═══════════════════════════════════════════════════════════════════════════
- * 
- * COLOR PALETTE:
- * - Black (#000000) - Primary background
- * - Zinc-950 - Secondary sections
- * - White (#FFFFFF) - Primary text
- * - Gray-400 - Secondary text
- * 
- * TYPOGRAPHY:
- * - Headlines: Bold, tight tracking
- * - Body: Light, relaxed leading
- * - Uppercase: Used sparingly for small text
- * 
- * ANIMATIONS:
- * - Smooth fade-ins on scroll
- * - Hover effects on cards
- * - Staggered timeline reveals
- * - All using Framer Motion
- * 
- * ═══════════════════════════════════════════════════════════════════════════
- * IMPORTANT REMINDERS:
- * ═══════════════════════════════════════════════════════════════════════════
- * 
- * - This is MVP - placeholder content is EXPECTED
- * - Logo file must be at /public/BlackTransparent.png
- * - All photos are temporary - replace after photo shoot
- * - Copy will be refined through version control
- * - Pages linked from cards don't exist yet - build them next
- * - Mobile responsiveness is built in
- * - All animations tested and working
- * - This matches David Alaba aesthetic as discussed
- * 
- * ═══════════════════════════════════════════════════════════════════════════
- * 
- * YOU'RE READY TO TEST! 🚀
- * 
- * Run `npm run dev` and visit http://localhost:3000
- * 
- * Let me know what you think and we'll iterate from there!
- * 
- * ═══════════════════════════════════════════════════════════════════════════
+ * CHILD COMPONENTS (need their own tracking):
+ * - HeroSection: Upload next for tracking
+ * - FourPillars: Upload next for tracking
+ * - JourneyPreview: Upload next for tracking
+ * - ContactCTA: Upload next for tracking
+ * - Navigation: Upload next for tracking
+ * - MainFooter: Upload next for tracking
  */
