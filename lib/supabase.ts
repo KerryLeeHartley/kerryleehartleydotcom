@@ -1,3 +1,11 @@
+// ============================================================================
+// SUPABASE CLIENT - DATABASE CONNECTION (UPDATED WITH Q&A + TOOLS)
+// ============================================================================
+// What: Supabase client + types for funnels + Q&A + Tools for Journey
+// Why: Centralized database access for all features
+// How: Existing schema + Q&A + Tools tables integrated
+// ============================================================================
+
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -5,7 +13,10 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Database Types
+// ============================================================================
+// EXISTING DATABASE TYPES (FUNNELS SYSTEM)
+// ============================================================================
+
 export type Funnel = {
   id: string
   created_at: string
@@ -66,4 +77,199 @@ export type Event = {
   page_id?: string
   lead_id?: string
   metadata?: Record<string, any>
+}
+
+// ============================================================================
+// Q&A DATABASE TYPES (FOR /LINKS + /QA PAGES)
+// ============================================================================
+
+export type QADatabase = {
+  id: string
+  created_at: string
+  question: string
+  answer_text?: string
+  video_platform?: 'tiktok' | 'youtube' | 'instagram'
+  video_url?: string
+  video_embed_id?: string
+  category?: 'career' | 'money' | 'purpose' | 'life'
+  tags?: string[]
+  status: 'pending' | 'answered' | 'published'
+  asker_email?: string
+  asker_name?: string
+  answered_at?: string
+  published_at?: string
+  view_count: number
+  last_viewed_at?: string
+}
+
+export type QAView = {
+  id: string
+  created_at: string
+  qa_id: string
+  session_id?: string
+  user_id?: string
+  time_spent_seconds?: number
+  scrolled_to_bottom?: boolean
+  clicked_video?: boolean
+  viewed_at: string
+}
+
+export type QASearch = {
+  id: string
+  created_at: string
+  search_term: string
+  results_count?: number
+  searched_at: string
+  session_id?: string
+}
+
+export type QASubmission = {
+  id: string
+  created_at: string
+  question: string
+  email?: string
+  name?: string
+  triage_selection?: string
+  vibe_check_score?: number
+  submitted_at: string
+  status: 'pending' | 'answered' | 'ignored'
+  answered_qa_id?: string
+}
+
+// ============================================================================
+// TOOLS FOR THE JOURNEY TYPES
+// ============================================================================
+
+export type Tool = {
+  id: string
+  created_at: string
+  title: string
+  description?: string
+  category: string
+  product_url: string
+  image_url: string
+  gradient_from: string
+  gradient_to: string
+  sort_order: number
+  is_active: boolean
+  click_count: number
+  last_clicked_at?: string
+}
+
+// ============================================================================
+// Q&A FUNCTIONS (FOR /LINKS + /QA PAGES)
+// ============================================================================
+
+/**
+ * Get published Q&As (for public /qa page)
+ */
+export async function getPublishedQAs(limit: number = 10, category?: string) {
+  let query = supabase
+    .from('qa_database')
+    .select('*')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false })
+    .limit(limit)
+
+  if (category) {
+    query = query.eq('category', category)
+  }
+
+  return await query
+}
+
+/**
+ * Get single Q&A by ID
+ */
+export async function getQAById(id: string) {
+  return await supabase
+    .from('qa_database')
+    .select('*')
+    .eq('id', id)
+    .eq('status', 'published')
+    .single()
+}
+
+/**
+ * Search Q&As
+ */
+export async function searchQAs(searchTerm: string) {
+  await supabase.from('qa_searches').insert({
+    search_term: searchTerm,
+    searched_at: new Date().toISOString()
+  })
+
+  return await supabase
+    .from('qa_database')
+    .select('*')
+    .eq('status', 'published')
+    .or(`question.ilike.%${searchTerm}%,answer_text.ilike.%${searchTerm}%`)
+    .order('published_at', { ascending: false })
+}
+
+/**
+ * Track Q&A view (privately)
+ */
+export async function trackQAView(qaId: string, sessionId?: string) {
+  await supabase.from('qa_views').insert({
+    qa_id: qaId,
+    session_id: sessionId,
+    viewed_at: new Date().toISOString()
+  })
+
+  await supabase.rpc('increment_qa_view_count', { qa_uuid: qaId })
+}
+
+/**
+ * Submit new question (from /links page)
+ */
+export async function submitQuestion(data: {
+  question: string
+  email: string
+  name?: string
+  triage_selection?: string
+  vibe_check_score?: number
+}) {
+  return await supabase.from('qa_submissions').insert({
+    question: data.question,
+    email: data.email,
+    name: data.name,
+    triage_selection: data.triage_selection,
+    vibe_check_score: data.vibe_check_score,
+    submitted_at: new Date().toISOString(),
+    status: 'pending'
+  })
+}
+
+/**
+ * Get pending questions (admin only via dashboard)
+ */
+export async function getPendingQuestions() {
+  return await supabase
+    .from('qa_submissions')
+    .select('*')
+    .eq('status', 'pending')
+    .order('submitted_at', { ascending: false })
+}
+
+// ============================================================================
+// TOOLS FOR THE JOURNEY FUNCTIONS
+// ============================================================================
+
+/**
+ * Get all active tools (sorted by sort_order)
+ */
+export async function getTools() {
+  return await supabase
+    .from('tools_for_journey')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+}
+
+/**
+ * Track tool click
+ */
+export async function trackToolClick(toolId: string) {
+  return await supabase.rpc('increment_tool_clicks', { tool_uuid: toolId })
 }

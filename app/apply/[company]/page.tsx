@@ -12,10 +12,13 @@ import HobbiesSection from '@/components/apply/HobbiesSection'
 
 // Import application data
 import airbnbData from '@/data/applications/airbnb.json'
-
+import youtubeData from '@/data/applications/youtube.json'  // ← ADDED
+ 
 // Map of available applications
 const applications: Record<string, any> = {
   'airbnb': airbnbData,
+  'youtube': youtubeData, 
+  
   // Add more as you create them:
   // 'salesforce': salesforceData,
   // 'stripe': stripeData,
