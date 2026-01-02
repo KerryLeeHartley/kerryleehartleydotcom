@@ -1,0 +1,153 @@
+{
+  "company": "ServiceNow",
+  "role": "Senior Partner Sales Operations Manager",
+  "jobPostingUrl": "https://careers.servicenow.com/jobs/744000097825077/senior-partner-sales-operations-manager/",
+  "slug": "servicenow",
+  "videoUrl": "",
+  "heroHeadline": "Strategic Partner Operations Leader. Data Storyteller.",
+  "heroSubtext": "From Accenture's Global Elite ServiceNow partnership to driving ISV partner success. I don't just manage pipelines—I orchestrate ecosystems where partners thrive and revenue compounds. Every number tells a story. Every partner relationship drives scale.",
+  "additionalRoles": [
+    {
+      "title": "Senior Partner Sales Operations Manager - Atlanta",
+      "url": "https://careers.servicenow.com/jobs/744000097825077/senior-partner-sales-operations-manager/",
+      "isPrimary": true
+    }
+  ],
+  "skills": [
+    "ISV Partnership Operations",
+    "Pipeline & Forecast Management (Clari, Salesforce)",
+    "Territory Design & Capacity Planning",
+    "Compensation Plan Design & Management",
+    "Power BI Dashboard Development",
+    "Cross-Functional GTM Orchestration",
+    "Partner Performance Analytics & QBRs",
+    "Revenue Intelligence & KPI Tracking",
+    "Deal Support & Exception Resolution",
+    "Anaplan & Varicent (CRM/SPM Platforms)"
+  ],
+  "keyWins": [
+    {
+      "metric": "Accenture Experience",
+      "description": "Worked within ServiceNow's Global Elite Partner ecosystem"
+    },
+    {
+      "metric": "181% YoY",
+      "description": "SQO improvement via strategic pipeline orchestration"
+    },
+    {
+      "metric": "33% YoY",
+      "description": "Bookings growth through GTM alignment and forecast accuracy"
+    },
+    {
+      "metric": "20%",
+      "description": "Forecasting accuracy improvement supporting C-suite decisions"
+    }
+  ],
+  "experience": [
+    {
+      "title": "GTM Strategy & Operations Manager AMER/APAC",
+      "company": "Camunda",
+      "period": "12/2024 - 07/2025",
+      "highlights": [
+        "Owned end-to-end pipeline and forecast management across North America and APAC",
+        "Implemented Clari dashboards for AE forecasting, global revenue calls, and QBRs",
+        "Led territory redesign: realigned 15 territories and 20,000+ accounts",
+        "Managed regional and global incentive programs translating complex data into executive insights",
+        "Co-owned Rules of Engagement rollout streamlining cross-functional GTM processes",
+        "Built trusted relationships with VP of Sales, CRO, and EMEA counterparts as primary operational POC"
+      ]
+    },
+    {
+      "title": "Sales Strategy & Operations",
+      "company": "Accenture | Pinterest",
+      "period": "05/2023 - 11/2024",
+      "highlights": [
+        "Accenture: ServiceNow Global Elite Partner—gained firsthand exposure to ServiceNow ecosystem",
+        "Translated large datasets into actionable insights for VP-level and CFO/CEO earnings call preparation",
+        "Delivered sales insights through Salesforce, Looker, and Gong improving forecast accuracy by 20%",
+        "Supported capacity planning, forecasting, and rhythm-of-business in high-growth ad sales",
+        "Developed automated reporting systems increasing operational efficiency by 30%",
+        "Served as interim lead for Sales Operations, managing cross-functional alignment"
+      ]
+    },
+    {
+      "title": "Co-Founder & Operational Lead",
+      "company": "Wags For Us Pet Care",
+      "period": "07/2021 - Present",
+      "highlights": [
+        "Co-founded and scaled operations serving 350+ clients with 150+ five-star reviews",
+        "Designed CRM architecture (Odoo) and repeatable acquisition funnels for sustainable revenue growth",
+        "Built partner ecosystem leveraging third-party platforms (Rover) for consistent pipeline generation",
+        "Demonstrates entrepreneurial mindset: built from scratch, scaled through strategic partnerships"
+      ]
+    },
+    {
+      "title": "Licensed Realtor®",
+      "company": "Harry Norman, REALTORS®",
+      "period": "10/2025 - Present",
+      "highlights": [
+        "Passed licensing exam first attempt after world-class training",
+        "Implemented Odoo CRM for proprietary sales methodology (Ninja Selling)",
+        "Built independent pipeline through strategic lead generation and market analysis",
+        "Translate complex market data into actionable client insights and forecast analysis"
+      ]
+    }
+  ],
+  "whyServiceNow": {
+    "title": "Why ServiceNow's ISV Partner Operations",
+    "narrative": [
+      "I've already been inside the ServiceNow ecosystem. At Accenture—ServiceNow's Global Elite Partner across reseller, service provider, consultant, implementation, and build—I saw firsthand how powerful the partner model is when operations run tight. I supported processes that rolled up to the very partnerships ServiceNow relies on to scale.",
+      "ServiceNow's ISV partner strategy is the creator economy at enterprise scale. Just like hyperscalers (AWS, Azure) provide infrastructure for builders, ServiceNow provides the Now Platform for ISVs to build, test, and sell applications. The ISV Lighthouse Initiative with Microsoft, NVIDIA, and Essentia proves ServiceNow isn't just enabling partners—it's orchestrating an ecosystem.",
+      "Here's what I bring that's unique: I don't just manage pipelines—I understand the dynamics of partner-driven revenue models. Partners aren't employees. They have their own quotas, their own motivations, and their own challenges. Managing partner productivity means understanding what drives them, building transparent performance metrics, and creating win-win incentive structures.",
+      "I've led territory redesigns (15 territories, 20K+ accounts), managed compensation plans, and owned forecast accuracy for global revenue calls. At Camunda, I built Clari dashboards that became the single source of truth for our CRO and VP of Sales. At Pinterest via Accenture, I supported earnings call preparation—I know what it means to operate in a publicly traded company where every quarter matters.",
+      "ServiceNow's partner operations need someone who can be an internal consultant, a data storyteller, and a strategic orchestrator. Someone who can break silos between Sales, Marketing, Product, Finance, and Legal. Someone who can turn rocket science into actionable insights that busy executives can actually use. That's exactly what I do."
+    ]
+  },
+  "projects": [
+    {
+      "title": "Personal Brand Website",
+      "description": "Full-stack Next.js site with animated signature, dynamic application funnels, and interactive resume showcasing technical and strategic capabilities.",
+      "tech": ["Next.js", "React", "Tailwind CSS", "Framer Motion", "TypeScript", "Google Analytics"],
+      "image": "/images/projects/KerryLeeHartleyDotCom Mockup Photos.svg",
+      "link": "https://kerryleehartley.com"
+    },
+    {
+      "title": "Creator Decoded",
+      "description": "Content creator analytics platform demonstrating understanding of platform ecosystems, partner dynamics, and performance tracking at scale.",
+      "tech": ["React", "Supabase", "Analytics APIs", "Data Visualization"],
+      "image": "/images/projects/Creator Decoded Mockup Photos.svg",
+      "link": "#"
+    },
+    {
+      "title": "Fundamental Four (Book)",
+      "description": "Self-published framework for personal and professional excellence: Innovate, Inspire, Invest, Impact. Faith-driven approach to strategic execution and operational leadership.",
+      "tech": ["Self-Publishing", "Content Strategy", "Personal Brand"],
+      "image": "/images/projects/FullMockUp.png",
+      "link": "#"
+    }
+  ],
+  "roleAlignment": {
+    "pipelineManagement": "Owned end-to-end pipeline and forecast management at Camunda (33% YoY bookings growth). Implemented Clari dashboards for AE forecasting, global revenue calls, and QBRs.",
+    "quotaAndCompensation": "Led territory redesign (15 territories, 20K+ accounts), managed regional and global incentive programs, designed compensation plans at enterprise scale.",
+    "analyticsAndInsights": "Built Power BI and Looker dashboards, improved forecast accuracy by 20%, translated complex datasets into VP/CFO-level strategic recommendations for earnings calls.",
+    "gtmOperationalReadiness": "Co-owned Rules of Engagement rollout at Camunda, developed automated reporting systems increasing efficiency by 30%, participated in capacity planning and tech stack optimization.",
+    "crossFunctionalPartnership": "Built trusted relationships with VP of Sales, CRO, and cross-regional counterparts. Partnered with Sales, Finance, Legal, Marketing, and Product teams to resolve deal exceptions and drive quarter-end close.",
+    "dealSupport": "Managed deal and compensation exceptions/escalations, supported new rep onboarding (comp plans, quota assignments, system access, dashboard enablement)."
+  },
+  "serviceNowContext": {
+    "isvPartnership": "ServiceNow's ISV (Independent Software Vendor) partnerships allow software developers to build, test, and sell applications on the Now Platform via the ServiceNow Store. Key partners include Microsoft (2025 ISV Innovation Partner of the Year), AWS, NVIDIA, Essentia, and Nuvolo.",
+    "marketPosition": "ServiceNow serves 8,100+ customers including 85% of Fortune 500. As a publicly traded company, quarterly earnings and partner-driven revenue growth are mission-critical.",
+    "personalConnection": "Exposed to ServiceNow through family (mother used ServiceNow at CVS) and professionally through Accenture's Global Elite partnership. Understand the enterprise-scale impact ServiceNow delivers."
+  },
+  "contact": {
+    "email": "KerryLeeHartley@gmail.com",
+    "phone": "321-806-0402",
+    "linkedin": "https://linkedin.com/in/kerryleehartley",
+    "github": "https://github.com/KerryLeeHartley",
+    "calendly": "https://calendly.com/thekerryleehartley/chat"
+  },
+  "downloads": {
+    "resume": "/resumes/Kerry-Hartley-ServiceNow-Resume.pdf",
+    "coverLetter": "/resumes/Kerry-Hartley-ServiceNow-Cover-Letter.pdf"
+  }
+}
