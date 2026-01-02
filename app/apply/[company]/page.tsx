@@ -1,48 +1,49 @@
 // Dynamic application page with custom navigation and event tracking
 // Fixed for Next.js 15 async params
 
-import { notFound } from 'next/navigation'
-import Image from 'next/image'
-import VideoHero from '@/components/apply/VideoHero'
-import InteractiveResume from '@/components/apply/InteractiveResume'
-import ProjectShowcase from '@/components/apply/ProjectShowcase'
-import CalendlyCTA from '@/components/apply/CalendlyCTA'
-import ScrollTracker from '@/components/apply/ScrollTracker'
-import HobbiesSection from '@/components/apply/HobbiesSection'
+import { notFound } from "next/navigation";
+import Image from "next/image";
+import VideoHero from "@/components/apply/VideoHero";
+import InteractiveResume from "@/components/apply/InteractiveResume";
+import ProjectShowcase from "@/components/apply/ProjectShowcase";
+import CalendlyCTA from "@/components/apply/CalendlyCTA";
+import ScrollTracker from "@/components/apply/ScrollTracker";
+import HobbiesSection from "@/components/apply/HobbiesSection";
 
 // Import application data
-import airbnbData from '@/data/applications/airbnb.json'
-import youtubeData from '@/data/applications/youtube.json'  // ← ADDED
- 
+import airbnbData from "@/data/applications/airbnb.json";
+import youtubeData from "@/data/applications/youtube.json"; // ← ADDED
+import servicenowData from "@/data/applications/servicenow.json"; // ← ADD THIS
+
 // Map of available applications
 const applications: Record<string, any> = {
-  'airbnb': airbnbData,
-  'youtube': youtubeData, 
-  
+  airbnb: airbnbData,
+  youtube: youtubeData,
+
   // Add more as you create them:
   // 'salesforce': salesforceData,
   // 'stripe': stripeData,
-}
+};
 
 // ============================================================================
 // CUSTOM NAVIGATION - Client Component
 // ============================================================================
-import ApplyNavigation from '@/components/apply/ApplyNavigation'
+import ApplyNavigation from "@/components/apply/ApplyNavigation";
 
 // ============================================================================
 // MAIN PAGE COMPONENT - Fixed for Next.js 15
 // ============================================================================
-export default async function ApplyPage({ 
-  params 
-}: { 
-  params: Promise<{ company: string }> 
+export default async function ApplyPage({
+  params,
+}: {
+  params: Promise<{ company: string }>;
 }) {
   // Await params in Next.js 15
-  const { company } = await params
-  const appData = applications[company]
-  
+  const { company } = await params;
+  const appData = applications[company];
+
   if (!appData) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -83,10 +84,10 @@ export default async function ApplyPage({
           downloads={appData.downloads}
           company={appData.company}
         />
-        
+
         {/* Scroll Tracking */}
         <ScrollTracker company={appData.company} />
       </main>
     </>
-  )
+  );
 }
