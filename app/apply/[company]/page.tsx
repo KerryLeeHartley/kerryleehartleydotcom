@@ -19,6 +19,7 @@ import servicenowData from "@/data/applications/servicenow.json"; // ← ADD THI
 const applications: Record<string, any> = {
   airbnb: airbnbData,
   youtube: youtubeData,
+  servicenow: servicenowData,
 
   // Add more as you create them:
   // 'salesforce': salesforceData,
