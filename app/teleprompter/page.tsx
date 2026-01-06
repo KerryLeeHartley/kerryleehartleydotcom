@@ -1,9 +1,9 @@
 // ============================================================================
-// TELEPROMPTER TOOL - COMPLETE WITH MAGIC LINK AUTH
+// TELEPROMPTER - REBUILT WITH PROPER MIRROR MODE
 // ============================================================================
-// What: Professional teleprompter with voice tracking, auth, mirror mode
-// Why: Lead gen tool with email capture, cross-device access
-// How: Web Speech API + Supabase Auth + usage limits
+// What: Clean mirror mode implementation + better UX
+// Why: Previous transform approach was fighting CSS layout
+// How: Simpler approach with flip button in control bar
 // ============================================================================
 
 "use client";
@@ -29,7 +29,7 @@ import {
 
 export default function TeleprompterPage() {
   // ============================================================================
-  // AUTH STATE (MUST BE FIRST)
+  // AUTH STATE
   // ============================================================================
   const {
     user,
@@ -80,27 +80,34 @@ export default function TeleprompterPage() {
   const wordsRef = useRef<string[]>([]);
 
   // ============================================================================
+  // MIRROR MODE TEXT PROCESSING
+  // ============================================================================
+
+  // Function to flip text for mirror mode
+  const getMirrorText = (text: string): string => {
+    if (!isMirrorMode) return text;
+
+    // Split into lines
+    const lines = text.split("\n");
+
+    // Reverse characters in each line
+    const flippedLines = lines.map((line) => line.split("").reverse().join(""));
+
+    // ALSO reverse the line order!
+    return flippedLines.reverse().join("\n");
+  };
+
+  // Get the display text based on mirror mode
+  const displayText = getMirrorText(scriptText);
+
+  // ============================================================================
   // FUNCTIONS
   // ============================================================================
 
-  // Define incrementReadCount with useCallback to use in useEffect
   const incrementReadCount = useCallback(async (scriptId: string) => {
     await supabase.rpc("increment_script_reads", { script_uuid: scriptId });
   }, []);
 
-  // Auto-scroll to bottom when mirror mode is enabled
-  useEffect(() => {
-    if (isMirrorMode && scrollContainerRef.current) {
-      // Scroll to bottom when mirror mode is turned on
-      scrollContainerRef.current.scrollTop =
-        scrollContainerRef.current.scrollHeight;
-    } else if (!isMirrorMode && scrollContainerRef.current) {
-      // Scroll to top when mirror mode is turned off
-      scrollContainerRef.current.scrollTop = 0;
-    }
-  }, [isMirrorMode]);
-
-  // Split script into words for tracking
   useEffect(() => {
     wordsRef.current = scriptText
       .split(/\s+/)
@@ -108,7 +115,6 @@ export default function TeleprompterPage() {
     setCurrentWordIndex(0);
   }, [scriptText]);
 
-  // Load scripts on mount (filtered by user if authenticated)
   useEffect(() => {
     if (!authLoading) {
       loadScripts();
@@ -121,11 +127,9 @@ export default function TeleprompterPage() {
       .select("*")
       .order("updated_at", { ascending: false });
 
-    // If authenticated, load user's scripts
     if (user) {
       query = query.eq("owner_email", user.email);
     } else {
-      // If not authenticated, only show public scripts
       query = query.eq("is_public", true).limit(2);
     }
 
@@ -133,26 +137,18 @@ export default function TeleprompterPage() {
     if (data) setScripts(data);
   };
 
-  // Auto-scroll animation (manual mode)
+  // Simple auto-scroll - always scrolls down
   useEffect(() => {
     if (isPlaying && !isVoiceTracking && scrollContainerRef.current) {
       const scroll = () => {
         if (scrollContainerRef.current) {
-          // More accurate speed calculation
-          const baseSpeed = (scrollSpeed / 100) * 2;
-          // Reverse direction in mirror mode (scroll up instead of down)
-          const speed = isMirrorMode ? -baseSpeed : baseSpeed;
+          const speed = (scrollSpeed / 100) * 2;
           scrollContainerRef.current.scrollTop += speed;
 
           const { scrollTop, scrollHeight, clientHeight } =
             scrollContainerRef.current;
 
-          // Check end condition based on mirror mode
-          const reachedEnd = isMirrorMode
-            ? scrollTop <= 10 // In mirror mode, stop when reaching top
-            : scrollTop + clientHeight >= scrollHeight - 10; // Normal mode, stop at bottom
-
-          if (reachedEnd) {
+          if (scrollTop + clientHeight >= scrollHeight - 10) {
             setIsPlaying(false);
             if (currentScript?.id) {
               incrementReadCount(currentScript.id);
@@ -178,12 +174,10 @@ export default function TeleprompterPage() {
     isVoiceTracking,
     currentScript,
     incrementReadCount,
-    isMirrorMode,
   ]);
 
-  // Voice tracking with real-time speech recognition (Chrome + Safari)
+  // Voice recognition setup
   useEffect(() => {
-    // Check for browser support
     const SpeechRecognition =
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
@@ -200,15 +194,11 @@ export default function TeleprompterPage() {
       };
 
       recognitionRef.current.onresult = (event: any) => {
-        console.log("🗣️ Speech detected!", event);
-
         let interimTranscript = "";
         let finalTranscript = "";
 
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
-          console.log("📝 Transcript:", transcript);
-
           if (event.results[i].isFinal) {
             finalTranscript += transcript + " ";
           } else {
@@ -219,22 +209,12 @@ export default function TeleprompterPage() {
         const fullTranscript = (finalTranscript + interimTranscript)
           .toLowerCase()
           .trim();
-
-        console.log("📄 Full transcript:", fullTranscript);
         setRecognizedText(fullTranscript);
 
-        // Match spoken words to script and scroll
         if (fullTranscript && wordsRef.current.length > 0) {
           const spokenWords = fullTranscript.split(/\s+/);
           const scriptWords = wordsRef.current.map((w) =>
             w.toLowerCase().replace(/[^\w\s]/g, "")
-          );
-
-          console.log(
-            "🔍 Matching:",
-            spokenWords,
-            "from position",
-            currentWordIndex
           );
 
           let matchIndex = currentWordIndex;
@@ -243,7 +223,6 @@ export default function TeleprompterPage() {
           for (const spokenWord of recentWords) {
             for (let j = matchIndex; j < scriptWords.length; j++) {
               const scriptWord = scriptWords[j];
-
               if (spokenWord.length >= 3 && scriptWord.length >= 3) {
                 if (
                   scriptWord.includes(spokenWord) ||
@@ -251,80 +230,55 @@ export default function TeleprompterPage() {
                 ) {
                   if (j > matchIndex) {
                     matchIndex = j;
-                    console.log(
-                      "✅ Sequential match:",
-                      spokenWord,
-                      "at index",
-                      j
-                    );
+                    break;
                   }
-                  break;
                 }
               }
             }
           }
 
           if (matchIndex > currentWordIndex) {
-            console.log("📍 Moving from", currentWordIndex, "to", matchIndex);
             setCurrentWordIndex(matchIndex);
             scrollToWord(matchIndex);
-          } else {
-            console.log("⏸️ No forward progress");
           }
         }
       };
 
       recognitionRef.current.onerror = (event: any) => {
-        console.error("❌ Speech recognition error:", event.error, event);
-
+        console.error("❌ Speech recognition error:", event.error);
         if (
           event.error === "not-allowed" ||
           event.error === "service-not-allowed"
         ) {
           alert(
-            "Microphone access denied. Please enable microphone permissions in your browser settings."
+            "Microphone access denied. Please enable microphone permissions."
           );
           setIsVoiceTracking(false);
         } else if (event.error === "no-speech") {
-          console.log("⚠️ No speech detected, restarting...");
           if (isVoiceTracking) {
             setTimeout(() => {
               try {
                 recognitionRef.current.start();
               } catch (e) {
-                console.log("Could not restart recognition");
+                console.log("Could not restart");
               }
             }, 100);
           }
         } else if (event.error === "network") {
-          alert(
-            "Network error. Voice tracking requires an internet connection."
-          );
+          alert("Network error. Voice tracking requires internet.");
           setIsVoiceTracking(false);
-        } else if (event.error === "aborted") {
-          console.log("✅ Recognition aborted normally");
-        } else {
-          console.error("Other error:", event.error);
         }
       };
 
       recognitionRef.current.onend = () => {
-        console.log("🛑 Recognition ended, isVoiceTracking:", isVoiceTracking);
-
         if (isVoiceTracking) {
-          console.log("🔄 Auto-restarting recognition...");
           try {
             recognitionRef.current.start();
           } catch (e) {
-            console.log("Could not restart:", e);
             setIsVoiceTracking(false);
           }
-        } else {
-          console.log("✅ Recognition properly stopped");
         }
       };
-    } else {
-      console.error("❌ Speech recognition not supported in this browser");
     }
 
     return () => {
@@ -338,64 +292,41 @@ export default function TeleprompterPage() {
     };
   }, [isVoiceTracking, currentWordIndex]);
 
-  // Scroll to keep current word visible
   const scrollToWord = (wordIndex: number) => {
-    console.log("📜 scrollToWord called with index:", wordIndex);
     const wordElements = document.querySelectorAll(".script-word");
-    console.log("📝 Found", wordElements.length, "word elements");
-
     if (wordElements[wordIndex] && scrollContainerRef.current) {
       const wordElement = wordElements[wordIndex] as HTMLElement;
       const container = scrollContainerRef.current;
-
       const wordTop = wordElement.offsetTop;
       const wordHeight = wordElement.offsetHeight;
       const containerHeight = container.clientHeight;
-
-      // In mirror mode, scroll is inverted
-      const scrollPosition = isMirrorMode
-        ? container.scrollHeight -
-          wordTop -
-          containerHeight / 2 -
-          wordHeight / 2
-        : wordTop - containerHeight / 2 + wordHeight / 2;
-
-      console.log("🎯 Scrolling to position:", scrollPosition);
+      const scrollPosition = wordTop - containerHeight / 2 + wordHeight / 2;
 
       container.scrollTo({
         top: scrollPosition,
         behavior: "smooth",
       });
-    } else {
-      console.log("❌ Could not scroll - element or container not found");
     }
   };
 
-  // ============================================================================
-  // AUTH-GATED VOICE TRACKING
-  // ============================================================================
   const handleVoiceTrackClick = () => {
-    // Check if user can use voice tracking
     if (!consumeVoiceUse()) {
       setAuthTrigger("voice_tracking_limit");
       setShowAuthModal(true);
       return;
     }
-
-    // Original toggle function
     toggleVoiceTracking();
   };
 
   const toggleVoiceTracking = () => {
     if (!recognitionRef.current) {
       alert(
-        "Voice tracking not supported in this browser. Try Chrome, Edge, or Safari (iOS 14.5+)."
+        "Voice tracking not supported. Try Chrome, Edge, or Safari (iOS 14.5+)."
       );
       return;
     }
 
     if (isVoiceTracking) {
-      console.log("🛑 Stopping voice tracking...");
       try {
         recognitionRef.current.stop();
         recognitionRef.current.abort();
@@ -405,19 +336,15 @@ export default function TeleprompterPage() {
       setIsVoiceTracking(false);
       setRecognizedText("");
       setIsPlaying(false);
-      console.log("✅ Voice tracking stopped");
     } else {
-      console.log("▶️ Starting voice tracking...");
       setIsPlaying(false);
       setCurrentWordIndex(0);
       setRecognizedText("");
-
       try {
         recognitionRef.current.start();
         setIsVoiceTracking(true);
       } catch (e) {
-        console.error("Could not start recognition:", e);
-        alert("Could not start voice tracking. Please refresh and try again.");
+        alert("Could not start voice tracking. Please refresh.");
       }
     }
   };
@@ -429,23 +356,18 @@ export default function TeleprompterPage() {
     setIsPlaying(false);
   };
 
-  // ============================================================================
-  // AUTH-GATED SAVE
-  // ============================================================================
   const handleSave = async () => {
     if (!scriptTitle || !scriptText) {
       alert("Please add a title and script content");
       return;
     }
 
-    // Check if user is logged in
     if (!user) {
       setAuthTrigger("save_script");
       setShowAuthModal(true);
       return;
     }
 
-    // Save script
     await saveScript();
   };
 
@@ -472,7 +394,6 @@ export default function TeleprompterPage() {
         .insert(scriptData)
         .select()
         .single();
-
       if (data) setCurrentScript(data);
     }
 
@@ -488,7 +409,6 @@ export default function TeleprompterPage() {
     setScrollSpeed(script.scroll_speed || 50);
     setIsMirrorMode(script.is_mirror_mode || false);
     setShowScriptList(false);
-
     await supabase.rpc("increment_script_views", { script_uuid: script.id });
   };
 
@@ -497,15 +417,11 @@ export default function TeleprompterPage() {
       const link = `${window.location.origin}/teleprompter/${currentScript.share_slug}`;
       setShareLink(link);
       navigator.clipboard.writeText(link);
-      alert("Share link copied to clipboard!");
+      alert("Share link copied!");
     } else {
-      alert("Save the script first to generate a share link");
+      alert("Save the script first");
     }
   };
-
-  // ============================================================================
-  // RENDER
-  // ============================================================================
 
   if (authLoading) {
     return (
@@ -517,9 +433,7 @@ export default function TeleprompterPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A]">
-      {/* ========================================================================
-          HEADER WITH AUTH
-          ======================================================================== */}
+      {/* HEADER */}
       <header className="bg-black/50 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -532,7 +446,6 @@ export default function TeleprompterPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Usage Indicator */}
             <UsageIndicator
               user={user}
               usesLeft={voiceTrackingUsesLeft}
@@ -542,7 +455,6 @@ export default function TeleprompterPage() {
               }}
             />
 
-            {/* Login or User Menu */}
             {!user ? (
               <button
                 onClick={() => {
@@ -590,9 +502,7 @@ export default function TeleprompterPage() {
       </header>
 
       <div className="flex h-[calc(100vh-64px)] relative">
-        {/* ======================================================================
-            BACKDROP FOR MOBILE
-            ====================================================================== */}
+        {/* BACKDROP */}
         {showScriptList && (
           <div
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
@@ -600,34 +510,15 @@ export default function TeleprompterPage() {
           />
         )}
 
-        {/* ======================================================================
-            SCRIPT LIST SIDEBAR
-            ====================================================================== */}
+        {/* SIDEBAR */}
         {showScriptList && (
-          <aside
-            className={`
-            fixed lg:relative
-            inset-y-0 left-0
-            w-full sm:w-80 
-            bg-black/95 lg:bg-black/30 
-            backdrop-blur-sm 
-            border-r border-white/10 
-            overflow-y-auto
-            z-50 lg:z-auto
-            transform transition-transform duration-300
-            ${
-              showScriptList
-                ? "translate-x-0"
-                : "-translate-x-full lg:translate-x-0"
-            }
-          `}
-          >
+          <aside className="fixed lg:relative inset-y-0 left-0 w-full sm:w-80 bg-black/95 lg:bg-black/30 backdrop-blur-sm border-r border-white/10 overflow-y-auto z-50 lg:z-auto">
             <div className="p-4">
               <div className="lg:hidden flex items-center justify-between mb-4">
                 <h2 className="text-white font-semibold">My Scripts</h2>
                 <button
                   onClick={() => setShowScriptList(false)}
-                  className="p-2 hover:bg-white/10 rounded-lg text-white transition-all"
+                  className="p-2 hover:bg-white/10 rounded-lg text-white"
                 >
                   <svg
                     className="w-6 h-6"
@@ -678,35 +569,16 @@ export default function TeleprompterPage() {
                     </p>
                   </button>
                 ))}
-
-                {!user && scripts.length === 2 && (
-                  <div className="mt-4 p-3 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-lg">
-                    <p className="text-xs text-white/70 mb-2">
-                      Want to save your own scripts?
-                    </p>
-                    <button
-                      onClick={() => {
-                        setAuthTrigger("manual_login");
-                        setShowAuthModal(true);
-                      }}
-                      className="text-xs text-[#D4AF37] font-semibold hover:underline"
-                    >
-                      Sign in to unlock →
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </aside>
         )}
 
         <div className="flex-1 flex flex-col">
-          {/* ==================================================================
-              SETTINGS PANEL
-              ================================================================== */}
+          {/* SETTINGS */}
           {showSettings && (
             <div className="bg-black/50 backdrop-blur-sm border-b border-white/10 p-4">
-              <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-white text-sm mb-2 block">
                     Font Size: {fontSize}px
@@ -734,23 +606,6 @@ export default function TeleprompterPage() {
                     className="w-full"
                   />
                 </div>
-
-                <div>
-                  <label className="text-white text-sm mb-2 block">
-                    Mirror Mode
-                  </label>
-                  <button
-                    onClick={() => setIsMirrorMode(!isMirrorMode)}
-                    className={`w-full px-4 py-2 rounded-lg font-semibold transition-all ${
-                      isMirrorMode
-                        ? "bg-[#D4AF37] text-black"
-                        : "bg-white/10 text-white hover:bg-white/20"
-                    }`}
-                  >
-                    <FlipVertical className="w-4 h-4 inline mr-2" />
-                    {isMirrorMode ? "ON" : "OFF"}
-                  </button>
-                </div>
               </div>
 
               <div className="max-w-4xl mx-auto mt-4">
@@ -765,27 +620,33 @@ export default function TeleprompterPage() {
             </div>
           )}
 
-          {/* ==================================================================
-              TELEPROMPTER DISPLAY
-              ================================================================== */}
+          {/* TELEPROMPTER DISPLAY - TEXT REVERSAL + ROTATION */}
           <div
             ref={scrollContainerRef}
             className="flex-1 overflow-y-auto overflow-x-hidden bg-black"
-            style={{
-              display: "flex",
-              flexDirection: isMirrorMode ? "column-reverse" : "column",
-            }}
           >
             <div
-              className="max-w-4xl mx-auto px-8 py-20 w-full"
+              className="max-w-4xl mx-auto px-8 py-20"
               style={{
-                transform: isMirrorMode ? "scaleY(-1)" : "none",
+                transform: isMirrorMode ? "rotate(180deg)" : "none",
               }}
             >
               {!isVoiceTracking && (
                 <textarea
-                  value={scriptText}
-                  onChange={(e) => setScriptText(e.target.value)}
+                  value={displayText}
+                  onChange={(e) => {
+                    // When user types in mirror mode, un-flip it
+                    if (isMirrorMode) {
+                      const lines = e.target.value.split("\n");
+                      const unflipped = lines
+                        .reverse()
+                        .map((line) => line.split("").reverse().join(""))
+                        .join("\n");
+                      setScriptText(unflipped);
+                    } else {
+                      setScriptText(e.target.value);
+                    }
+                  }}
                   placeholder="Type or paste your script here..."
                   className="w-full min-h-screen bg-transparent text-white resize-none focus:outline-none leading-relaxed"
                   style={{
@@ -803,24 +664,31 @@ export default function TeleprompterPage() {
                     fontFamily: "system-ui, -apple-system, sans-serif",
                   }}
                 >
-                  {wordsRef.current.map((word, index) => (
-                    <span
-                      key={index}
-                      className={`script-word transition-all duration-200 ${
-                        index === currentWordIndex
-                          ? "text-[#D4AF37] font-bold scale-110 inline-block"
-                          : index < currentWordIndex
-                          ? "text-white/40"
-                          : "text-white"
-                      }`}
-                      style={{
-                        marginRight: "0.3em",
-                        display: "inline-block",
-                      }}
-                    >
-                      {word}
-                    </span>
-                  ))}
+                  {wordsRef.current.map((word, index) => {
+                    // Flip individual words in mirror mode
+                    const displayWord = isMirrorMode
+                      ? word.split("").reverse().join("")
+                      : word;
+
+                    return (
+                      <span
+                        key={index}
+                        className={`script-word transition-all duration-200 ${
+                          index === currentWordIndex
+                            ? "text-[#D4AF37] font-bold scale-110 inline-block"
+                            : index < currentWordIndex
+                            ? "text-white/40"
+                            : "text-white"
+                        }`}
+                        style={{
+                          marginRight: "0.3em",
+                          display: "inline-block",
+                        }}
+                      >
+                        {displayWord}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
 
@@ -829,22 +697,15 @@ export default function TeleprompterPage() {
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
                     <p className="text-white text-sm font-semibold">
-                      Listening... Speak your script
+                      Listening...
                     </p>
                   </div>
-                  {recognizedText && (
-                    <p className="text-white/60 text-xs mt-1 text-center max-w-md truncate">
-                      &quot;{recognizedText}&quot;
-                    </p>
-                  )}
                 </div>
               )}
             </div>
           </div>
 
-          {/* ==================================================================
-              CONTROL BAR
-              ================================================================== */}
+          {/* CONTROL BAR - WITH MIRROR BUTTON */}
           <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 p-4">
             <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
@@ -853,7 +714,6 @@ export default function TeleprompterPage() {
                     <button
                       onClick={() => setIsPlaying(!isPlaying)}
                       className="p-3 bg-[#D4AF37] hover:bg-[#C49D2F] rounded-full text-black transition-all"
-                      title="Manual scroll"
                     >
                       {isPlaying ? (
                         <Pause className="w-6 h-6" />
@@ -865,7 +725,6 @@ export default function TeleprompterPage() {
                     <button
                       onClick={resetScroll}
                       className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"
-                      title="Reset to top"
                     >
                       <RotateCcw className="w-5 h-5" />
                     </button>
@@ -876,22 +735,37 @@ export default function TeleprompterPage() {
                   onClick={handleVoiceTrackClick}
                   className={`px-4 py-3 rounded-full transition-all font-semibold flex items-center gap-2 ${
                     isVoiceTracking
-                      ? "bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50"
+                      ? "bg-red-500 hover:bg-red-600 text-white"
                       : "bg-[#8FA989] hover:bg-[#7A9078] text-white"
                   }`}
-                  title="Voice tracking mode"
                 >
                   {isVoiceTracking ? (
                     <>
                       <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                      <span className="text-sm">Stop Voice Track</span>
+                      <span className="text-sm">Stop</span>
                     </>
                   ) : (
                     <>
                       <Mic className="w-5 h-5" />
-                      <span className="text-sm">Voice Track</span>
+                      <span className="text-sm">Voice</span>
                     </>
                   )}
+                </button>
+
+                {/* MIRROR BUTTON - MOVED HERE! */}
+                <button
+                  onClick={() => setIsMirrorMode(!isMirrorMode)}
+                  className={`px-4 py-3 rounded-full transition-all font-semibold flex items-center gap-2 ${
+                    isMirrorMode
+                      ? "bg-[#D4AF37] text-black"
+                      : "bg-white/10 hover:bg-white/20 text-white"
+                  }`}
+                  title="Mirror mode for teleprompter glass"
+                >
+                  <FlipVertical className="w-5 h-5" />
+                  <span className="hidden sm:inline text-sm">
+                    {isMirrorMode ? "ON" : "Mirror"}
+                  </span>
                 </button>
               </div>
 
@@ -923,34 +797,10 @@ export default function TeleprompterPage() {
                 </button>
               </div>
             </div>
-
-            <div className="max-w-4xl mx-auto mt-3">
-              {isVoiceTracking ? (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-                  <p className="text-center text-sm text-white">
-                    🎤 <strong>Voice Tracking Active</strong> - Start speaking
-                    your script. The text will highlight and scroll as you speak
-                    each word.
-                  </p>
-                </div>
-              ) : isPlaying ? (
-                <p className="text-center text-sm text-white/70">
-                  ⏯️ Manual scroll mode - Adjust speed in settings
-                </p>
-              ) : (
-                <p className="text-center text-sm text-white/50">
-                  Press <strong>Voice Track</strong> to follow your speech, or{" "}
-                  <strong>Play</strong> for auto-scroll
-                </p>
-              )}
-            </div>
           </div>
         </div>
       </div>
 
-      {/* ========================================================================
-          AUTH MODAL
-          ======================================================================== */}
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
