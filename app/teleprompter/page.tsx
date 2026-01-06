@@ -41,7 +41,7 @@ export default function TeleprompterPage() {
 
   // UI state
   const [showSettings, setShowSettings] = useState(false);
-  const [showScriptList, setShowScriptList] = useState(true);
+  const [showScriptList, setShowScriptList] = useState(false); // Changed to false for mobile
   const [shareLink, setShareLink] = useState("");
   const [showBrowserWarning, setShowBrowserWarning] = useState(false);
 
@@ -140,13 +140,22 @@ export default function TeleprompterPage() {
       recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = "en-US";
+      recognitionRef.current.maxAlternatives = 1;
+
+      recognitionRef.current.onstart = () => {
+        console.log("🎤 Voice recognition started");
+      };
 
       recognitionRef.current.onresult = (event: any) => {
+        console.log("🗣️ Speech detected!", event);
+
         let interimTranscript = "";
         let finalTranscript = "";
 
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
+          console.log("📝 Transcript:", transcript);
+
           if (event.results[i].isFinal) {
             finalTranscript += transcript + " ";
           } else {
@@ -157,6 +166,8 @@ export default function TeleprompterPage() {
         const fullTranscript = (finalTranscript + interimTranscript)
           .toLowerCase()
           .trim();
+
+        console.log("📄 Full transcript:", fullTranscript);
         setRecognizedText(fullTranscript);
 
         // Match spoken words to script and scroll
@@ -166,41 +177,97 @@ export default function TeleprompterPage() {
             w.toLowerCase().replace(/[^\w\s]/g, "")
           );
 
-          // Find where we are in the script
-          let matchIndex = 0;
-          for (let i = 0; i < scriptWords.length; i++) {
-            const scriptWord = scriptWords[i];
-            const isMatched = spokenWords.some(
-              (spokenWord) =>
-                scriptWord.includes(spokenWord) ||
-                spokenWord.includes(scriptWord)
-            );
+          console.log(
+            "🔍 Matching:",
+            spokenWords,
+            "from position",
+            currentWordIndex
+          );
 
-            if (isMatched) {
-              matchIndex = i;
+          // Find the NEXT sequential match (only search forward from current position)
+          let matchIndex = currentWordIndex;
+
+          // Look at the LAST few spoken words (most recent speech)
+          const recentWords = spokenWords.slice(-3); // Last 3 words only
+
+          for (const spokenWord of recentWords) {
+            // Search ONLY from current position forward
+            for (let j = matchIndex; j < scriptWords.length; j++) {
+              const scriptWord = scriptWords[j];
+
+              // Must be a good match (not tiny words like "a", "to")
+              if (spokenWord.length >= 3 && scriptWord.length >= 3) {
+                if (
+                  scriptWord.includes(spokenWord) ||
+                  spokenWord.includes(scriptWord)
+                ) {
+                  if (j > matchIndex) {
+                    matchIndex = j;
+                    console.log(
+                      "✅ Sequential match:",
+                      spokenWord,
+                      "at index",
+                      j
+                    );
+                  }
+                  break; // Found this word, move to next spoken word
+                }
+              }
             }
           }
 
+          // Only update if we've moved forward
           if (matchIndex > currentWordIndex) {
+            console.log("📍 Moving from", currentWordIndex, "to", matchIndex);
             setCurrentWordIndex(matchIndex);
             scrollToWord(matchIndex);
+          } else {
+            console.log("⏸️ No forward progress");
           }
         }
       };
 
       recognitionRef.current.onerror = (event: any) => {
-        console.error("Speech recognition error:", event.error);
-        if (event.error === "no-speech") {
+        console.error("❌ Speech recognition error:", event.error, event);
+
+        if (
+          event.error === "not-allowed" ||
+          event.error === "service-not-allowed"
+        ) {
+          alert(
+            "Microphone access denied. Please enable microphone permissions in your browser settings."
+          );
+          setIsVoiceTracking(false);
+        } else if (event.error === "no-speech") {
+          console.log("⚠️ No speech detected, restarting...");
           if (isVoiceTracking) {
-            recognitionRef.current.stop();
-            setTimeout(() => recognitionRef.current.start(), 100);
+            setTimeout(() => {
+              try {
+                recognitionRef.current.start();
+              } catch (e) {
+                console.log("Could not restart recognition");
+              }
+            }, 100);
           }
+        } else if (event.error === "network") {
+          alert(
+            "Network error. Voice tracking requires an internet connection."
+          );
+          setIsVoiceTracking(false);
+        } else {
+          console.error("Other error:", event.error);
         }
       };
 
       recognitionRef.current.onend = () => {
+        console.log("🛑 Recognition ended");
         if (isVoiceTracking) {
-          recognitionRef.current.start();
+          console.log("🔄 Restarting recognition...");
+          try {
+            recognitionRef.current.start();
+          } catch (e) {
+            console.log("Could not restart:", e);
+          }
         }
       };
     }
@@ -214,7 +281,10 @@ export default function TeleprompterPage() {
 
   // Scroll to keep current word visible
   const scrollToWord = (wordIndex: number) => {
+    console.log("📜 scrollToWord called with index:", wordIndex);
     const wordElements = document.querySelectorAll(".script-word");
+    console.log("📝 Found", wordElements.length, "word elements");
+
     if (wordElements[wordIndex] && scrollContainerRef.current) {
       const wordElement = wordElements[wordIndex] as HTMLElement;
       const container = scrollContainerRef.current;
@@ -224,10 +294,14 @@ export default function TeleprompterPage() {
       const containerHeight = container.clientHeight;
       const scrollPosition = wordTop - containerHeight / 2 + wordHeight / 2;
 
+      console.log("🎯 Scrolling to position:", scrollPosition);
+
       container.scrollTo({
         top: scrollPosition,
         behavior: "smooth",
       });
+    } else {
+      console.log("❌ Could not scroll - element or container not found");
     }
   };
 
@@ -356,14 +430,36 @@ export default function TeleprompterPage() {
 
       <header className="bg-black/50 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-white">📱 Teleprompter</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-bold text-white">📱 Teleprompter</h1>
+            {currentScript && (
+              <span className="hidden sm:inline text-sm text-white/60">
+                {currentScript.title}
+              </span>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowScriptList(!showScriptList)}
-              className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white text-sm transition-all"
+              className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white text-sm transition-all flex items-center gap-2"
             >
-              {showScriptList ? "Hide" : "Show"} Scripts
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+              <span className="hidden sm:inline">
+                {showScriptList ? "Hide" : "Scripts"}
+              </span>
             </button>
 
             <button
@@ -376,11 +472,62 @@ export default function TeleprompterPage() {
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-64px)]">
+      <div className="flex h-[calc(100vh-64px)] relative">
+        {/* Backdrop for mobile */}
         {showScriptList && (
-          <aside className="w-80 bg-black/30 backdrop-blur-sm border-r border-white/10 overflow-y-auto">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setShowScriptList(false)}
+          />
+        )}
+
+        {/* Script List Sidebar - Mobile Overlay / Desktop Sidebar */}
+        {showScriptList && (
+          <aside
+            className={`
+            fixed lg:relative
+            inset-y-0 left-0
+            w-full sm:w-80 
+            bg-black/95 lg:bg-black/30 
+            backdrop-blur-sm 
+            border-r border-white/10 
+            overflow-y-auto
+            z-50 lg:z-auto
+            transform transition-transform duration-300
+            ${
+              showScriptList
+                ? "translate-x-0"
+                : "-translate-x-full lg:translate-x-0"
+            }
+          `}
+          >
             <div className="p-4">
-              <h2 className="text-white font-semibold mb-4">My Scripts</h2>
+              {/* Mobile Close Button */}
+              <div className="lg:hidden flex items-center justify-between mb-4">
+                <h2 className="text-white font-semibold">My Scripts</h2>
+                <button
+                  onClick={() => setShowScriptList(false)}
+                  className="p-2 hover:bg-white/10 rounded-lg text-white transition-all"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <h2 className="hidden lg:block text-white font-semibold mb-4">
+                My Scripts
+              </h2>
 
               <button
                 onClick={() => {
