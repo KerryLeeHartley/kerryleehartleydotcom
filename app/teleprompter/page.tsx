@@ -1,11 +1,3 @@
-// ============================================================================
-// TELEPROMPTER - REBUILT WITH PROPER MIRROR MODE
-// ============================================================================
-// What: Clean mirror mode implementation + better UX
-// Why: Previous transform approach was fighting CSS layout
-// How: Simpler approach with flip button in control bar
-// ============================================================================
-
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -79,26 +71,8 @@ export default function TeleprompterPage() {
   const recognitionRef = useRef<any>(null);
   const wordsRef = useRef<string[]>([]);
 
-  // ============================================================================
-  // MIRROR MODE TEXT PROCESSING
-  // ============================================================================
-
-  // Function to flip text for mirror mode
-  const getMirrorText = (text: string): string => {
-    if (!isMirrorMode) return text;
-
-    // Split into lines
-    const lines = text.split("\n");
-
-    // Reverse characters in each line
-    const flippedLines = lines.map((line) => line.split("").reverse().join(""));
-
-    // ALSO reverse the line order!
-    return flippedLines.reverse().join("\n");
-  };
-
-  // Get the display text based on mirror mode
-  const displayText = getMirrorText(scriptText);
+  // Simple text passthrough - CSS handles the mirroring now
+  const displayText = scriptText;
 
   // ============================================================================
   // FUNCTIONS
@@ -434,6 +408,9 @@ export default function TeleprompterPage() {
   return (
     <main
       className="min-h-screen bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A]"
+      // MIRROR MODE LOGIC:
+      // This rotates the ENTIRE container 180 degrees when Mirror Mode is ON.
+      // This is perfect for glass teleprompters (like Neewer).
       style={{
         transform: isMirrorMode ? "rotate(180deg)" : "none",
       }}
@@ -625,33 +602,16 @@ export default function TeleprompterPage() {
             </div>
           )}
 
-          {/* TELEPROMPTER DISPLAY - TEXT REVERSAL + ROTATION */}
+          {/* TELEPROMPTER DISPLAY AREA */}
           <div
             ref={scrollContainerRef}
             className="flex-1 overflow-y-auto overflow-x-hidden bg-black"
           >
-            <div
-              className="max-w-4xl mx-auto px-8 py-20"
-              style={{
-                transform: isMirrorMode ? "rotate(180deg)" : "none",
-              }}
-            >
+            <div className="max-w-4xl mx-auto px-8 py-20">
               {!isVoiceTracking && (
                 <textarea
                   value={displayText}
-                  onChange={(e) => {
-                    // When user types in mirror mode, un-flip it
-                    if (isMirrorMode) {
-                      const lines = e.target.value.split("\n");
-                      const unflipped = lines
-                        .reverse()
-                        .map((line) => line.split("").reverse().join(""))
-                        .join("\n");
-                      setScriptText(unflipped);
-                    } else {
-                      setScriptText(e.target.value);
-                    }
-                  }}
+                  onChange={(e) => setScriptText(e.target.value)}
                   placeholder="Type or paste your script here..."
                   className="w-full min-h-screen bg-transparent text-white resize-none focus:outline-none leading-relaxed"
                   style={{
@@ -669,48 +629,30 @@ export default function TeleprompterPage() {
                     fontFamily: "system-ui, -apple-system, sans-serif",
                   }}
                 >
-                  {wordsRef.current.map((word, index) => {
-                    // Flip individual words in mirror mode
-                    const displayWord = isMirrorMode
-                      ? word.split("").reverse().join("")
-                      : word;
-
-                    return (
-                      <span
-                        key={index}
-                        className={`script-word transition-all duration-200 ${
-                          index === currentWordIndex
-                            ? "text-[#D4AF37] font-bold scale-110 inline-block"
-                            : index < currentWordIndex
-                            ? "text-white/40"
-                            : "text-white"
-                        }`}
-                        style={{
-                          marginRight: "0.3em",
-                          display: "inline-block",
-                        }}
-                      >
-                        {displayWord}
-                      </span>
-                    );
-                  })}
-                </div>
-              )}
-
-              {isVoiceTracking && (
-                <div className="fixed bottom-32 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-sm px-6 py-3 rounded-full border border-[#D4AF37]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                    <p className="text-white text-sm font-semibold">
-                      Listening...
-                    </p>
-                  </div>
+                  {wordsRef.current.map((word, index) => (
+                    <span
+                      key={index}
+                      className={`script-word transition-all duration-200 ${
+                        index === currentWordIndex
+                          ? "text-[#D4AF37] font-bold scale-110 inline-block"
+                          : index < currentWordIndex
+                          ? "text-white/40"
+                          : "text-white"
+                      }`}
+                      style={{
+                        marginRight: "0.3em",
+                        display: "inline-block",
+                      }}
+                    >
+                      {word}
+                    </span>
+                  ))}
                 </div>
               )}
             </div>
           </div>
 
-          {/* CONTROL BAR - WITH MIRROR BUTTON */}
+          {/* CONTROL BAR */}
           <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 p-4">
             <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
@@ -757,7 +699,7 @@ export default function TeleprompterPage() {
                   )}
                 </button>
 
-                {/* MIRROR BUTTON - MOVED HERE! */}
+                {/* MIRROR BUTTON */}
                 <button
                   onClick={() => setIsMirrorMode(!isMirrorMode)}
                   className={`px-4 py-3 rounded-full transition-all font-semibold flex items-center gap-2 ${
