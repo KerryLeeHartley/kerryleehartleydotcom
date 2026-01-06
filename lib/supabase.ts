@@ -157,6 +157,27 @@ export type Tool = {
 }
 
 // ============================================================================
+// TELEPROMPTER TYPES
+// ============================================================================
+
+export type TeleprompterScript = {
+  id: string
+  created_at: string
+  updated_at: string
+  title: string
+  content: string
+  font_size: number
+  scroll_speed: number
+  is_mirror_mode: boolean
+  is_public: boolean
+  share_slug?: string
+  owner_email?: string
+  view_count: number
+  last_viewed_at?: string
+  read_count: number
+}
+
+// ============================================================================
 // Q&A FUNCTIONS (FOR /LINKS + /QA PAGES)
 // ============================================================================
 
@@ -272,4 +293,77 @@ export async function getTools() {
  */
 export async function trackToolClick(toolId: string) {
   return await supabase.rpc('increment_tool_clicks', { tool_uuid: toolId })
+}
+
+// ============================================================================
+// TELEPROMPTER FUNCTIONS
+// ============================================================================
+
+/**
+ * Get all scripts for user (or public scripts)
+ */
+export async function getTeleprompterScripts() {
+  return await supabase
+    .from('teleprompter_scripts')
+    .select('*')
+    .order('updated_at', { ascending: false })
+}
+
+/**
+ * Get single script by ID
+ */
+export async function getTeleprompterScript(id: string) {
+  return await supabase
+    .from('teleprompter_scripts')
+    .select('*')
+    .eq('id', id)
+    .single()
+}
+
+/**
+ * Get script by share slug
+ */
+export async function getTeleprompterScriptBySlug(slug: string) {
+  return await supabase
+    .from('teleprompter_scripts')
+    .select('*')
+    .eq('share_slug', slug)
+    .single()
+}
+
+/**
+ * Create new script
+ */
+export async function createTeleprompterScript(data: Partial<TeleprompterScript>) {
+  return await supabase
+    .from('teleprompter_scripts')
+    .insert(data)
+    .select()
+    .single()
+}
+
+/**
+ * Update script
+ */
+export async function updateTeleprompterScript(id: string, data: Partial<TeleprompterScript>) {
+  return await supabase
+    .from('teleprompter_scripts')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single()
+}
+
+/**
+ * Track script view
+ */
+export async function trackScriptView(scriptId: string) {
+  return await supabase.rpc('increment_script_views', { script_uuid: scriptId })
+}
+
+/**
+ * Track script read completion
+ */
+export async function trackScriptRead(scriptId: string) {
+  return await supabase.rpc('increment_script_reads', { script_uuid: scriptId })
 }
