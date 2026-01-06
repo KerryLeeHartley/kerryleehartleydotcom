@@ -100,15 +100,21 @@ export default function TeleprompterPage() {
       const scroll = () => {
         if (scrollContainerRef.current) {
           const speed = scrollSpeed / 10;
-          scrollContainerRef.current.scrollTop += speed;
+          if (isMirrorMode) {
+            scrollContainerRef.current.scrollTop -= speed; // Scroll upward
+          } else {
+            scrollContainerRef.current.scrollTop += speed; // Normal downward scroll
+          }
 
           const { scrollTop, scrollHeight, clientHeight } =
             scrollContainerRef.current;
-          if (scrollTop + clientHeight >= scrollHeight - 10) {
+          const isAtEnd = isMirrorMode
+            ? scrollTop <= 10 // Top of container = end in mirror mode
+            : scrollTop + clientHeight >= scrollHeight - 10;
+
+          if (isAtEnd) {
             setIsPlaying(false);
-            if (currentScript?.id) {
-              incrementReadCount(currentScript.id);
-            }
+            if (currentScript?.id) incrementReadCount(currentScript.id);
             return;
           }
 
@@ -349,9 +355,16 @@ export default function TeleprompterPage() {
   };
 
   const resetScroll = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = 0;
+    if (!scrollContainerRef.current) return;
+
+    const container = scrollContainerRef.current;
+
+    if (isMirrorMode) {
+      container.scrollTop = container.scrollHeight; // Start at bottom
+    } else {
+      container.scrollTop = 0; // Start at top
     }
+
     setIsPlaying(false);
   };
 
