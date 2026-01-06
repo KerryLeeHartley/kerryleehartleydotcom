@@ -1,17 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import {
-  Play,
-  Pause,
-  RotateCcw,
-  Settings,
-  Share2,
-  Save,
-  Mic,
-  FlipVertical,
-} from "lucide-react";
+import { Play, Pause, RotateCcw, Settings, Save, Mic } from "lucide-react";
 import {
   useTeleprompterAuth,
   AuthModal,
@@ -20,15 +11,11 @@ import {
 } from "@/lib/teleprompter-auth";
 
 export default function TeleprompterPage() {
-  // ============================================================================
-  // AUTH STATE
-  // ============================================================================
   const {
     user,
     loading: authLoading,
     voiceTrackingUsesLeft,
     useVoiceTracking: consumeVoiceUse,
-    isAuthenticated,
   } = useTeleprompterAuth();
 
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -36,155 +23,63 @@ export default function TeleprompterPage() {
     "save_script" | "voice_tracking_limit" | "manual_login"
   >("manual_login");
 
-  // ============================================================================
-  // SCRIPT STATE
-  // ============================================================================
-  const [scripts, setScripts] = useState<any[]>([]);
-  const [currentScript, setCurrentScript] = useState<any>(null);
-  const [scriptText, setScriptText] = useState("");
-  const [scriptTitle, setScriptTitle] = useState("");
-
-  // ============================================================================
-  // PLAYBACK STATE
-  // ============================================================================
+  const [scriptText, setScriptText] = useState(
+    "Tap the PLAY button for constant speed, or tap VOICE SYNC to have the text follow your voice as you speak."
+  );
   const [isPlaying, setIsPlaying] = useState(false);
   const [scrollSpeed, setScrollSpeed] = useState(50);
   const [fontSize, setFontSize] = useState(48);
   const [isMirrorMode, setIsMirrorMode] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
-  // ============================================================================
-  // VOICE CONTROL STATE
-  // ============================================================================
   const [isVoiceTracking, setIsVoiceTracking] = useState(false);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [recognizedText, setRecognizedText] = useState("");
-
-  // ============================================================================
-  // UI STATE
-  // ============================================================================
-  const [showSettings, setShowSettings] = useState(false);
-  const [showScriptList, setShowScriptList] = useState(false);
-  const [shareLink, setShareLink] = useState("");
-
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const animationFrameRef = useRef<number | undefined>(undefined);
   const recognitionRef = useRef<any>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const wordsRef = useRef<string[]>([]);
-
-  // Simple text passthrough - CSS handles the mirroring now
-  const displayText = scriptText;
-
-  // ============================================================================
-  // FUNCTIONS
-  // ============================================================================
-
-  const incrementReadCount = useCallback(async (scriptId: string) => {
-    await supabase.rpc("increment_script_reads", { script_uuid: scriptId });
-  }, []);
+  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     wordsRef.current = scriptText
       .split(/\s+/)
       .filter((word) => word.length > 0);
-    setCurrentWordIndex(0);
   }, [scriptText]);
 
+  // ENGINE 1: Constant Auto-Scroll (Play Button)
   useEffect(() => {
-    if (!authLoading) {
-      loadScripts();
-    }
-  }, [authLoading, user]);
-
-  const loadScripts = async () => {
-    let query = supabase
-      .from("teleprompter_scripts")
-      .select("*")
-      .order("updated_at", { ascending: false });
-
-    if (user) {
-      query = query.eq("owner_email", user.email);
-    } else {
-      query = query.eq("is_public", true).limit(2);
-    }
-
-    const { data } = await query;
-    if (data) setScripts(data);
-  };
-
-  // Simple auto-scroll - always scrolls down
-  useEffect(() => {
-    if (isPlaying && !isVoiceTracking && scrollContainerRef.current) {
-      const scroll = () => {
+    if (isPlaying && !isVoiceTracking) {
+      scrollIntervalRef.current = setInterval(() => {
         if (scrollContainerRef.current) {
-          const speed = (scrollSpeed / 100) * 2;
-          scrollContainerRef.current.scrollTop += speed;
-
-          const { scrollTop, scrollHeight, clientHeight } =
-            scrollContainerRef.current;
-
-          if (scrollTop + clientHeight >= scrollHeight - 10) {
-            setIsPlaying(false);
-            if (currentScript?.id) {
-              incrementReadCount(currentScript.id);
-            }
-            return;
-          }
-
-          animationFrameRef.current = requestAnimationFrame(scroll);
+          // Adjust increment based on scrollSpeed (1-100)
+          const increment = scrollSpeed / 25;
+          scrollContainerRef.current.scrollTop += increment;
         }
-      };
-
-      animationFrameRef.current = requestAnimationFrame(scroll);
+      }, 30);
+    } else {
+      if (scrollIntervalRef.current) clearInterval(scrollIntervalRef.current);
     }
-
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      if (scrollIntervalRef.current) clearInterval(scrollIntervalRef.current);
     };
-  }, [
-    isPlaying,
-    scrollSpeed,
-    isVoiceTracking,
-    currentScript,
-    incrementReadCount,
-  ]);
+  }, [isPlaying, isVoiceTracking, scrollSpeed]);
 
-  // Voice recognition setup
+  // ENGINE 2: Voice Sync Recognition Logic
   useEffect(() => {
     const SpeechRecognition =
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
-
-    if (typeof window !== "undefined" && SpeechRecognition) {
+    if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = "en-US";
-      recognitionRef.current.maxAlternatives = 1;
-
-      recognitionRef.current.onstart = () => {
-        console.log("🎤 Voice recognition started");
-      };
 
       recognitionRef.current.onresult = (event: any) => {
         let interimTranscript = "";
-        let finalTranscript = "";
-
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript + " ";
-          } else {
-            interimTranscript += transcript;
-          }
+          interimTranscript += event.results[i][0].transcript;
         }
 
-        const fullTranscript = (finalTranscript + interimTranscript)
-          .toLowerCase()
-          .trim();
-        setRecognizedText(fullTranscript);
-
+        const fullTranscript = interimTranscript.toLowerCase().trim();
         if (fullTranscript && wordsRef.current.length > 0) {
           const spokenWords = fullTranscript.split(/\s+/);
           const scriptWords = wordsRef.current.map((w) =>
@@ -196,16 +91,13 @@ export default function TeleprompterPage() {
 
           for (const spokenWord of recentWords) {
             for (let j = matchIndex; j < scriptWords.length; j++) {
-              const scriptWord = scriptWords[j];
-              if (spokenWord.length >= 3 && scriptWord.length >= 3) {
-                if (
-                  scriptWord.includes(spokenWord) ||
-                  spokenWord.includes(scriptWord)
-                ) {
-                  if (j > matchIndex) {
-                    matchIndex = j;
-                    break;
-                  }
+              if (
+                scriptWords[j].includes(spokenWord) ||
+                spokenWord.includes(scriptWords[j])
+              ) {
+                if (j > matchIndex) {
+                  matchIndex = j;
+                  break;
                 }
               }
             }
@@ -218,541 +110,232 @@ export default function TeleprompterPage() {
         }
       };
 
-      recognitionRef.current.onerror = (event: any) => {
-        console.error("❌ Speech recognition error:", event.error);
-        if (
-          event.error === "not-allowed" ||
-          event.error === "service-not-allowed"
-        ) {
-          alert(
-            "Microphone access denied. Please enable microphone permissions."
-          );
-          setIsVoiceTracking(false);
-        } else if (event.error === "no-speech") {
-          if (isVoiceTracking) {
-            setTimeout(() => {
-              try {
-                recognitionRef.current.start();
-              } catch (e) {
-                console.log("Could not restart");
-              }
-            }, 100);
-          }
-        } else if (event.error === "network") {
-          alert("Network error. Voice tracking requires internet.");
-          setIsVoiceTracking(false);
-        }
-      };
-
       recognitionRef.current.onend = () => {
-        if (isVoiceTracking) {
-          try {
-            recognitionRef.current.start();
-          } catch (e) {
-            setIsVoiceTracking(false);
-          }
-        }
+        if (isVoiceTracking) recognitionRef.current.start();
       };
     }
-
-    return () => {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (e) {
-          console.log("Recognition already stopped");
-        }
-      }
-    };
   }, [isVoiceTracking, currentWordIndex]);
 
-  const scrollToWord = (wordIndex: number) => {
+  const scrollToWord = (index: number) => {
     const wordElements = document.querySelectorAll(".script-word");
-    if (wordElements[wordIndex] && scrollContainerRef.current) {
-      const wordElement = wordElements[wordIndex] as HTMLElement;
+    if (wordElements[index] && scrollContainerRef.current) {
+      const el = wordElements[index] as HTMLElement;
       const container = scrollContainerRef.current;
-      const wordTop = wordElement.offsetTop;
-      const wordHeight = wordElement.offsetHeight;
-      const containerHeight = container.clientHeight;
-      const scrollPosition = wordTop - containerHeight / 2 + wordHeight / 2;
-
-      container.scrollTo({
-        top: scrollPosition,
-        behavior: "smooth",
-      });
+      // Centers the active word in the middle of the screen
+      const scrollPos =
+        el.offsetTop - container.clientHeight / 2 + el.offsetHeight / 2;
+      container.scrollTo({ top: scrollPos, behavior: "smooth" });
     }
   };
 
-  const handleVoiceTrackClick = () => {
-    if (!consumeVoiceUse()) {
-      setAuthTrigger("voice_tracking_limit");
-      setShowAuthModal(true);
-      return;
-    }
-    toggleVoiceTracking();
-  };
-
-  const toggleVoiceTracking = () => {
-    if (!recognitionRef.current) {
-      alert(
-        "Voice tracking not supported. Try Chrome, Edge, or Safari (iOS 14.5+)."
-      );
-      return;
-    }
-
+  const handleVoiceToggle = () => {
     if (isVoiceTracking) {
-      try {
-        recognitionRef.current.stop();
-        recognitionRef.current.abort();
-      } catch (e) {
-        console.log("Recognition already stopped");
-      }
+      recognitionRef.current?.stop();
       setIsVoiceTracking(false);
-      setRecognizedText("");
-      setIsPlaying(false);
     } else {
-      setIsPlaying(false);
-      setCurrentWordIndex(0);
-      setRecognizedText("");
-      try {
-        recognitionRef.current.start();
-        setIsVoiceTracking(true);
-      } catch (e) {
-        alert("Could not start voice tracking. Please refresh.");
+      if (!consumeVoiceUse()) {
+        setAuthTrigger("voice_tracking_limit");
+        setShowAuthModal(true);
+        return;
       }
+      setIsPlaying(false); // Disable auto-scroll when voice starts
+      setCurrentWordIndex(0);
+      recognitionRef.current?.start();
+      setIsVoiceTracking(true);
     }
   };
 
-  const resetScroll = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = 0;
-    }
-    setIsPlaying(false);
-  };
-
-  const handleSave = async () => {
-    if (!scriptTitle || !scriptText) {
-      alert("Please add a title and script content");
-      return;
-    }
-
-    if (!user) {
-      setAuthTrigger("save_script");
-      setShowAuthModal(true);
-      return;
-    }
-
-    await saveScript();
-  };
-
-  const saveScript = async () => {
-    const scriptData = {
-      title: scriptTitle,
-      content: scriptText,
-      font_size: fontSize,
-      scroll_speed: scrollSpeed,
-      is_mirror_mode: isMirrorMode,
-      share_slug: scriptTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-      is_public: false,
-      owner_email: user?.email,
-    };
-
-    if (currentScript?.id) {
-      await supabase
-        .from("teleprompter_scripts")
-        .update(scriptData)
-        .eq("id", currentScript.id);
-    } else {
-      const { data } = await supabase
-        .from("teleprompter_scripts")
-        .insert(scriptData)
-        .select()
-        .single();
-      if (data) setCurrentScript(data);
-    }
-
-    loadScripts();
-    alert("Script saved!");
-  };
-
-  const loadScript = async (script: any) => {
-    setCurrentScript(script);
-    setScriptTitle(script.title);
-    setScriptText(script.content);
-    setFontSize(script.font_size || 48);
-    setScrollSpeed(script.scroll_speed || 50);
-    setIsMirrorMode(script.is_mirror_mode || false);
-    setShowScriptList(false);
-    await supabase.rpc("increment_script_views", { script_uuid: script.id });
-  };
-
-  const generateShareLink = () => {
-    if (currentScript?.share_slug) {
-      const link = `${window.location.origin}/teleprompter/${currentScript.share_slug}`;
-      setShareLink(link);
-      navigator.clipboard.writeText(link);
-      alert("Share link copied!");
-    } else {
-      alert("Save the script first");
-    }
-  };
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
-  }
+  if (authLoading) return <div className="h-screen bg-black" />;
 
   return (
-    <main
-      className="min-h-screen bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A]"
-      // MIRROR MODE LOGIC:
-      // This rotates the ENTIRE container 180 degrees when Mirror Mode is ON.
-      // This is perfect for glass teleprompters (like Neewer).
-      style={{
-        transform: isMirrorMode ? "rotate(180deg)" : "none",
-      }}
-    >
+    <div className="h-screen w-screen bg-black flex flex-col overflow-hidden">
       {/* HEADER */}
-      <header className="bg-black/50 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-white">📱 Teleprompter</h1>
-            {currentScript && (
-              <span className="hidden sm:inline text-sm text-white/60">
-                {currentScript.title}
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <UsageIndicator
-              user={user}
-              usesLeft={voiceTrackingUsesLeft}
-              onLoginClick={() => {
+      <header className="h-16 border-b border-white/10 flex items-center justify-between px-6 shrink-0 bg-black z-30">
+        <h1 className="text-white font-black tracking-tighter text-xl">
+          VSL PROMPTER
+        </h1>
+        <div className="flex items-center gap-4">
+          <UsageIndicator
+            user={user}
+            usesLeft={voiceTrackingUsesLeft}
+            onLoginClick={() => {
+              setAuthTrigger("manual_login");
+              setShowAuthModal(true);
+            }}
+          />
+          {user ? (
+            <UserMenu user={user} />
+          ) : (
+            <button
+              onClick={() => {
                 setAuthTrigger("manual_login");
                 setShowAuthModal(true);
               }}
-            />
-
-            {!user ? (
-              <button
-                onClick={() => {
-                  setAuthTrigger("manual_login");
-                  setShowAuthModal(true);
-                }}
-                className="hidden sm:block text-sm text-white/70 hover:text-white transition-colors"
-              >
-                Sign in
-              </button>
-            ) : (
-              <UserMenu user={user} />
-            )}
-
-            <button
-              onClick={() => setShowScriptList(!showScriptList)}
-              className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white text-sm transition-all flex items-center gap-2"
+              className="text-xs font-bold text-[#D4AF37] border border-[#D4AF37]/40 px-4 py-2 rounded-full hover:bg-[#D4AF37] hover:text-black transition-all"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              <span className="hidden sm:inline">
-                {showScriptList ? "Hide" : "Scripts"}
-              </span>
+              LOGIN
             </button>
-
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-all"
-            >
-              <Settings className="w-5 h-5" />
-            </button>
-          </div>
+          )}
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="p-2 text-white/50 hover:text-white"
+          >
+            <Settings size={22} />
+          </button>
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-64px)] relative">
-        {/* BACKDROP */}
-        {showScriptList && (
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-            onClick={() => setShowScriptList(false)}
-          />
-        )}
-
-        {/* SIDEBAR */}
-        {showScriptList && (
-          <aside className="fixed lg:relative inset-y-0 left-0 w-full sm:w-80 bg-black/95 lg:bg-black/30 backdrop-blur-sm border-r border-white/10 overflow-y-auto z-50 lg:z-auto">
-            <div className="p-4">
-              <div className="lg:hidden flex items-center justify-between mb-4">
-                <h2 className="text-white font-semibold">My Scripts</h2>
-                <button
-                  onClick={() => setShowScriptList(false)}
-                  className="p-2 hover:bg-white/10 rounded-lg text-white"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              <h2 className="hidden lg:block text-white font-semibold mb-4">
-                My Scripts
-              </h2>
-
-              <button
-                onClick={() => {
-                  setCurrentScript(null);
-                  setScriptTitle("");
-                  setScriptText("");
-                  setShowScriptList(false);
-                }}
-                className="w-full mb-4 px-4 py-3 bg-[#D4AF37] hover:bg-[#C49D2F] text-black font-semibold rounded-lg transition-all"
-              >
-                + New Script
-              </button>
-
-              <div className="space-y-2">
-                {scripts.map((script) => (
-                  <button
-                    key={script.id}
-                    onClick={() => loadScript(script)}
-                    className={`w-full text-left p-3 rounded-lg transition-all ${
-                      currentScript?.id === script.id
-                        ? "bg-[#D4AF37] text-black"
-                        : "bg-white/5 hover:bg-white/10 text-white"
-                    }`}
-                  >
-                    <p className="font-semibold text-sm">{script.title}</p>
-                    <p className="text-xs opacity-70 mt-1">
-                      {new Date(script.updated_at).toLocaleDateString()}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </aside>
-        )}
-
-        <div className="flex-1 flex flex-col">
-          {/* SETTINGS */}
-          {showSettings && (
-            <div className="bg-black/50 backdrop-blur-sm border-b border-white/10 p-4">
-              <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-white text-sm mb-2 block">
-                    Font Size: {fontSize}px
-                  </label>
-                  <input
-                    type="range"
-                    min="24"
-                    max="96"
-                    value={fontSize}
-                    onChange={(e) => setFontSize(Number(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-white text-sm mb-2 block">
-                    Speed: {scrollSpeed}%
-                  </label>
-                  <input
-                    type="range"
-                    min="10"
-                    max="100"
-                    value={scrollSpeed}
-                    onChange={(e) => setScrollSpeed(Number(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="max-w-4xl mx-auto mt-4">
+      {/* PROMPTER AREA */}
+      <div className="flex-1 relative overflow-hidden flex flex-col bg-black">
+        {showSettings && (
+          <div className="absolute top-0 inset-x-0 bg-black/95 border-b border-white/10 p-6 z-40 animate-in slide-in-from-top duration-200">
+            <div className="max-w-xl mx-auto grid grid-cols-2 gap-8">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+                  Text Size ({fontSize}px)
+                </label>
                 <input
-                  type="text"
-                  value={scriptTitle}
-                  onChange={(e) => setScriptTitle(e.target.value)}
-                  placeholder="Script Title..."
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-[#D4AF37]"
+                  type="range"
+                  min="30"
+                  max="120"
+                  value={fontSize}
+                  onChange={(e) => setFontSize(Number(e.target.value))}
+                  className="w-full accent-[#D4AF37]"
                 />
               </div>
-            </div>
-          )}
-
-          {/* TELEPROMPTER DISPLAY AREA */}
-          <div
-            ref={scrollContainerRef}
-            className="flex-1 overflow-y-auto overflow-x-hidden bg-black"
-          >
-            <div className="max-w-4xl mx-auto px-8 py-20">
-              {!isVoiceTracking && (
-                <textarea
-                  value={displayText}
-                  onChange={(e) => setScriptText(e.target.value)}
-                  placeholder="Type or paste your script here..."
-                  className="w-full min-h-screen bg-transparent text-white resize-none focus:outline-none leading-relaxed"
-                  style={{
-                    fontSize: `${fontSize}px`,
-                    fontFamily: "system-ui, -apple-system, sans-serif",
-                  }}
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+                  Scroll Speed ({scrollSpeed})
+                </label>
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={scrollSpeed}
+                  onChange={(e) => setScrollSpeed(Number(e.target.value))}
+                  className="w-full accent-[#D4AF37]"
                 />
-              )}
-
-              {isVoiceTracking && (
-                <div
-                  className="leading-relaxed"
-                  style={{
-                    fontSize: `${fontSize}px`,
-                    fontFamily: "system-ui, -apple-system, sans-serif",
-                  }}
-                >
-                  {wordsRef.current.map((word, index) => (
-                    <span
-                      key={index}
-                      className={`script-word transition-all duration-200 ${
-                        index === currentWordIndex
-                          ? "text-[#D4AF37] font-bold scale-110 inline-block"
-                          : index < currentWordIndex
-                          ? "text-white/40"
-                          : "text-white"
-                      }`}
-                      style={{
-                        marginRight: "0.3em",
-                        display: "inline-block",
-                      }}
-                    >
-                      {word}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* CONTROL BAR */}
-          <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 p-4">
-            <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                {!isVoiceTracking && (
-                  <>
-                    <button
-                      onClick={() => setIsPlaying(!isPlaying)}
-                      className="p-3 bg-[#D4AF37] hover:bg-[#C49D2F] rounded-full text-black transition-all"
-                    >
-                      {isPlaying ? (
-                        <Pause className="w-6 h-6" />
-                      ) : (
-                        <Play className="w-6 h-6" />
-                      )}
-                    </button>
-
-                    <button
-                      onClick={resetScroll}
-                      className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"
-                    >
-                      <RotateCcw className="w-5 h-5" />
-                    </button>
-                  </>
-                )}
-
-                <button
-                  onClick={handleVoiceTrackClick}
-                  className={`px-4 py-3 rounded-full transition-all font-semibold flex items-center gap-2 ${
-                    isVoiceTracking
-                      ? "bg-red-500 hover:bg-red-600 text-white"
-                      : "bg-[#8FA989] hover:bg-[#7A9078] text-white"
-                  }`}
-                >
-                  {isVoiceTracking ? (
-                    <>
-                      <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                      <span className="text-sm">Stop</span>
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="w-5 h-5" />
-                      <span className="text-sm">Voice</span>
-                    </>
-                  )}
-                </button>
-
-                {/* MIRROR BUTTON */}
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+                  Display
+                </label>
                 <button
                   onClick={() => setIsMirrorMode(!isMirrorMode)}
-                  className={`px-4 py-3 rounded-full transition-all font-semibold flex items-center gap-2 ${
+                  className={`w-full py-2 rounded-lg font-bold text-xs transition-all ${
                     isMirrorMode
                       ? "bg-[#D4AF37] text-black"
-                      : "bg-white/10 hover:bg-white/20 text-white"
-                  }`}
-                  title="Mirror mode for teleprompter glass"
-                >
-                  <FlipVertical className="w-5 h-5" />
-                  <span className="hidden sm:inline text-sm">
-                    {isMirrorMode ? "ON" : "Mirror"}
-                  </span>
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleSave}
-                  disabled={isVoiceTracking}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 ${
-                    isVoiceTracking
-                      ? "bg-white/10 text-white/50 cursor-not-allowed"
-                      : "bg-[#8FA989] hover:bg-[#7A9078] text-white"
+                      : "bg-white/10 text-white"
                   }`}
                 >
-                  <Save className="w-4 h-4" />
-                  <span className="hidden sm:inline">Save</span>
-                </button>
-
-                <button
-                  onClick={generateShareLink}
-                  disabled={isVoiceTracking || !currentScript}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 ${
-                    isVoiceTracking || !currentScript
-                      ? "bg-white/10 text-white/50 cursor-not-allowed"
-                      : "bg-[#C97064] hover:bg-[#B86054] text-white"
-                  }`}
-                >
-                  <Share2 className="w-4 h-4" />
-                  <span className="hidden sm:inline">Share</span>
+                  {isMirrorMode ? "MIRROR ON" : "NORMAL VIEW"}
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto px-10 py-[40vh] scrollbar-hide"
+          style={{ transform: isMirrorMode ? "scaleY(-1)" : "none" }}
+        >
+          <div className="max-w-4xl mx-auto text-center">
+            {!isVoiceTracking ? (
+              <textarea
+                value={scriptText}
+                onChange={(e) => setScriptText(e.target.value)}
+                className="w-full bg-transparent text-white resize-none focus:outline-none leading-tight font-bold text-center"
+                style={{ fontSize: `${fontSize}px`, minHeight: "60vh" }}
+                spellCheck={false}
+              />
+            ) : (
+              <div
+                className="leading-tight font-bold text-center"
+                style={{ fontSize: `${fontSize}px` }}
+              >
+                {wordsRef.current.map((word, idx) => (
+                  <span
+                    key={idx}
+                    className={`script-word transition-all duration-300 mx-[0.15em] inline-block ${
+                      idx === currentWordIndex
+                        ? "text-[#D4AF37] scale-110"
+                        : idx < currentWordIndex
+                        ? "text-white/20"
+                        : "text-white"
+                    }`}
+                  >
+                    {word}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* FOOTER CONTROLS */}
+      <footer className="h-24 border-t border-white/10 flex items-center justify-center bg-black shrink-0 px-8 z-30">
+        <div className="max-w-5xl w-full flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => setIsPlaying(!isPlaying)}
+              disabled={isVoiceTracking}
+              className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+                isPlaying
+                  ? "bg-white text-black"
+                  : "bg-[#D4AF37] text-black shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+              } disabled:opacity-20`}
+            >
+              {isPlaying ? (
+                <Pause size={28} fill="currentColor" />
+              ) : (
+                <Play size={28} fill="currentColor" className="ml-1" />
+              )}
+            </button>
+            <button
+              onClick={() => {
+                setIsPlaying(false);
+                if (scrollContainerRef.current)
+                  scrollContainerRef.current.scrollTop = 0;
+              }}
+              className="p-3 text-white/30 hover:text-white transition-colors"
+            >
+              <RotateCcw size={20} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleVoiceToggle}
+              className={`flex items-center gap-3 px-6 py-3 rounded-full font-bold text-xs tracking-widest transition-all ${
+                isVoiceTracking
+                  ? "bg-red-500 text-white animate-pulse"
+                  : "bg-[#8FA989] text-white shadow-[0_0_15px_rgba(143,169,137,0.2)]"
+              }`}
+            >
+              <Mic size={16} /> {isVoiceTracking ? "STOP VOICE" : "VOICE SYNC"}
+            </button>
+            <button
+              onClick={() => {
+                if (!user) {
+                  setAuthTrigger("save_script");
+                  setShowAuthModal(true);
+                }
+              }}
+              className="p-4 bg-white/5 text-white/40 hover:text-white rounded-2xl transition-all"
+            >
+              <Save size={24} />
+            </button>
+          </div>
+        </div>
+      </footer>
 
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         trigger={authTrigger}
       />
-    </main>
+    </div>
   );
 }
