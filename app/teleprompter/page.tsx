@@ -653,7 +653,8 @@ export default function TeleprompterPage() {
             <div
               className="max-w-4xl mx-auto px-8 py-20"
               style={{
-                transform: isMirrorMode ? "scaleX(-1)" : "none",
+                transform: isMirrorMode ? "scaleX(-1) scaleY(-1)" : "none",
+                transformOrigin: "center center",
               }}
             >
               {!isVoiceTracking && (
