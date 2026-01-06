@@ -260,14 +260,19 @@ export default function TeleprompterPage() {
       };
 
       recognitionRef.current.onend = () => {
-        console.log("🛑 Recognition ended");
+        console.log("🛑 Recognition ended, isVoiceTracking:", isVoiceTracking);
+
+        // ONLY restart if still supposed to be tracking
         if (isVoiceTracking) {
-          console.log("🔄 Restarting recognition...");
+          console.log("🔄 Auto-restarting recognition...");
           try {
             recognitionRef.current.start();
           } catch (e) {
             console.log("Could not restart:", e);
+            setIsVoiceTracking(false);
           }
+        } else {
+          console.log("✅ Recognition properly stopped");
         }
       };
     }
@@ -314,16 +319,32 @@ export default function TeleprompterPage() {
     }
 
     if (isVoiceTracking) {
-      recognitionRef.current.stop();
+      // STOP COMPLETELY
+      console.log("🛑 Stopping voice tracking...");
+      try {
+        recognitionRef.current.stop();
+        recognitionRef.current.abort(); // Force stop
+      } catch (e) {
+        console.log("Recognition already stopped");
+      }
       setIsVoiceTracking(false);
       setRecognizedText("");
       setIsPlaying(false);
+      console.log("✅ Voice tracking stopped");
     } else {
+      // START
+      console.log("▶️ Starting voice tracking...");
       setIsPlaying(false);
       setCurrentWordIndex(0);
       setRecognizedText("");
-      recognitionRef.current.start();
-      setIsVoiceTracking(true);
+
+      try {
+        recognitionRef.current.start();
+        setIsVoiceTracking(true);
+      } catch (e) {
+        console.error("Could not start recognition:", e);
+        alert("Could not start voice tracking. Please refresh and try again.");
+      }
     }
   };
 
@@ -628,11 +649,13 @@ export default function TeleprompterPage() {
           <div
             ref={scrollContainerRef}
             className="flex-1 overflow-y-auto overflow-x-hidden bg-black"
-            style={{
-              transform: isMirrorMode ? "scaleX(-1) scaleY(-1)" : "none",
-            }}
           >
-            <div className="max-w-4xl mx-auto px-8 py-20">
+            <div
+              className="max-w-4xl mx-auto px-8 py-20"
+              style={{
+                transform: isMirrorMode ? "scaleX(-1)" : "none",
+              }}
+            >
               {!isVoiceTracking && (
                 <textarea
                   value={scriptText}
@@ -642,7 +665,6 @@ export default function TeleprompterPage() {
                   style={{
                     fontSize: `${fontSize}px`,
                     fontFamily: "system-ui, -apple-system, sans-serif",
-                    transform: isMirrorMode ? "scaleX(-1) scaleY(-1)" : "none",
                   }}
                 />
               )}
@@ -653,7 +675,6 @@ export default function TeleprompterPage() {
                   style={{
                     fontSize: `${fontSize}px`,
                     fontFamily: "system-ui, -apple-system, sans-serif",
-                    transform: isMirrorMode ? "scaleX(-1) scaleY(-1)" : "none",
                   }}
                 >
                   {wordsRef.current.map((word, index) => (
