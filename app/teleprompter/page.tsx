@@ -357,7 +357,7 @@ export default function TeleprompterPage() {
       <main
         ref={scrollContainerRef}
         className={`flex-1 overflow-y-auto px-4 md:px-12 py-[15vh] scrollbar-hide`}
-        style={{ transform: isMirrorMode ? "scaleX(-1) scaleY(-1)" : "none" }}
+        style={{ transform: isMirrorMode ? "scaleX(-1)" : "none" }}
       >
         <div className="w-full">
           {!isVoiceTracking ? (
