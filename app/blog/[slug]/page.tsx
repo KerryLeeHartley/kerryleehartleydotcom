@@ -26,21 +26,20 @@
 // ============================================================================
 
 import { notFound } from 'next/navigation'
-import fs from 'fs'
-import path from 'path'
-import matter from 'gray-matter'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import Link from 'next/link'
-import { 
-  ArrowLeft, 
-  Clock, 
-  User, 
+import {
+  ArrowLeft,
+  Clock,
+  User,
   Calendar,
   Facebook,
   Twitter,
   Linkedin,
   Mail
 } from 'lucide-react'
+import { client } from '@/lib/sanity/client'
+import { POST_BY_SLUG_QUERY, ALL_POSTS_QUERY, ALL_SLUGS_QUERY } from '@/lib/sanity/queries'
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -58,78 +57,6 @@ interface BlogPost {
   content: string
 }
 
-// ============================================================================
-// HELPER FUNCTIONS - GET BLOG POSTS FROM MDX FILES
-// ============================================================================
-
-/**
- * Get all blog posts from the MDX files
- * Reads from: /content/blog/first-time-buyers/*.mdx
- */
-function getAllPosts(): BlogPost[] {
-  const postsDirectory = path.join(process.cwd(), 'content/blog/first-time-buyers')
-  
-  // Check if directory exists
-  if (!fs.existsSync(postsDirectory)) {
-    console.warn('Blog directory not found:', postsDirectory)
-    return []
-  }
-
-  const filenames = fs.readdirSync(postsDirectory)
-  const posts = filenames
-    .filter(filename => filename.endsWith('.mdx'))
-    .map(filename => {
-      const slug = filename.replace(/\.mdx$/, '')
-      const filePath = path.join(postsDirectory, filename)
-      const fileContents = fs.readFileSync(filePath, 'utf8')
-      const { data, content } = matter(fileContents)
-
-      return {
-        slug,
-        title: data.title || 'Untitled',
-        excerpt: data.excerpt || '',
-        date: data.date || new Date().toISOString(),
-        author: data.author || 'Kerry Lee Hartley',
-        readTime: data.readTime || '5 min',
-        category: data.category || 'First Time Buyer',  // ← UPDATED: No dashes!
-        image: data.image || '/images/blog/default-header.jpg',
-        content,
-      }
-    })
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-
-  return posts
-}
-
-/**
- * Get a single post by slug
- */
-function getPostBySlug(slug: string): BlogPost | null {
-  const posts = getAllPosts()
-  return posts.find(post => post.slug === slug) || null
-}
-
-/**
- * Get adjacent posts for next/previous navigation
- */
-function getAdjacentPosts(currentSlug: string) {
-  const posts = getAllPosts()
-  const currentIndex = posts.findIndex(post => post.slug === currentSlug)
-  
-  return {
-    prev: currentIndex > 0 ? posts[currentIndex - 1] : null,
-    next: currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null,
-  }
-}
-
-/**
- * Get related posts (excluding current post)
- */
-function getRelatedPosts(currentSlug: string, limit: number = 3): BlogPost[] {
-  return getAllPosts()
-    .filter(post => post.slug !== currentSlug)
-    .slice(0, limit)
-}
 
 /**
  * Generate table of contents from markdown content
@@ -338,7 +265,7 @@ function AuthorCTA() {
       
       {/* TODO: Update href to match your funnel page */}
       <Link
-        href="/first-time-buyers#video"
+        href="/real-estate/first-time-buyers#video"
         className="block w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-3 px-4 rounded-lg text-center hover:shadow-xl transition-all"
       >
         Watch Free Video
@@ -351,22 +278,30 @@ function AuthorCTA() {
 // MAIN PAGE COMPONENT
 // ============================================================================
 
-export default async function BlogPostPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
+export async function generateStaticParams() {
+  const slugs = await client.withConfig({ useCdn: false }).fetch(ALL_SLUGS_QUERY)
+  return slugs.map(({ slug }: { slug: string }) => ({ slug }))
+}
+
+export default async function BlogPostPage({
+  params
+}: {
+  params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const post = getPostBySlug(slug)
 
-  // Handle 404 if post not found
-  if (!post) {
-    notFound()
-  }
+  const [post, allPosts] = await Promise.all([
+    client.fetch<BlogPost>(POST_BY_SLUG_QUERY, { slug }, { next: { tags: [`post:${slug}`] } }),
+    client.fetch<BlogPost[]>(ALL_POSTS_QUERY, {}, { next: { tags: ['post'] } }),
+  ])
 
-  const toc = generateTOC(post.content)
-  const relatedPosts = getRelatedPosts(slug)
-  const { prev, next } = getAdjacentPosts(slug)
+  if (!post) notFound()
+
+  const toc = generateTOC(post.content ?? '')
+  const currentIndex = allPosts.findIndex((p: BlogPost) => p.slug === slug)
+  const prev = currentIndex > 0 ? allPosts[currentIndex - 1] : null
+  const next = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null
+  const relatedPosts = allPosts.filter((p: BlogPost) => p.slug !== slug).slice(0, 3)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FAF9F6] via-[#F8F6F3] to-[#F5F1E8]">
@@ -423,7 +358,7 @@ export default async function BlogPostPage({
 
         {/* Back Button - FIXED: Now positioned to not block category tag */}
         <Link
-          href="/first-time-buyers#blog"
+          href="/blog"
           className="fixed top-20 left-6 z-50 md:absolute md:top-6 md:left-6 inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-lg hover:bg-white/20 transition-all group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />

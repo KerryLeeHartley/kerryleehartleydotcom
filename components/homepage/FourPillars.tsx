@@ -113,7 +113,7 @@ export default function FourPillars() {
       description: 'Creating paths to wealth and homeownership. Helping families build their foundation.',
       audience: 'For Families',
       imageSrc: '/images/IMG_6022.png',
-      href: '/funnel/first-time-buyers',
+      href: '/real-estate/first-time-buyers',
       delay: 0.3
     },
     {

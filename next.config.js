@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['images.unsplash.com', 'cdn.loom.com'],
+    domains: ['images.unsplash.com', 'cdn.loom.com', 'cdn.sanity.io'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -10,6 +10,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'loom.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
       },
     ],
   },

@@ -111,7 +111,7 @@ export default function Navigation() {
                         Technology
                       </Link>
                       <Link 
-                        href="/funnel/first-time-buyers"
+                        href="/real-estate/first-time-buyers"
                         onClick={() => trackNavClick('Work > Real Estate')}
                         className="block px-6 py-3 text-white hover:bg-white/10 transition-colors text-sm"
                       >
@@ -242,7 +242,7 @@ export default function Navigation() {
                   → Technology
                 </Link>
                 <Link 
-                  href="/funnel/first-time-buyers"
+                  href="/real-estate/first-time-buyers"
                   onClick={() => {
                     setMobileMenuOpen(false)
                     trackNavClick('Work > Real Estate', true)
